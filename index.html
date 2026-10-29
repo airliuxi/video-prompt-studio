@@ -1391,7 +1391,30 @@
       .i2v-toggle {
         margin-top: 12px;
       }
-    </style>
+      .rig-warnings {
+        margin: 0 0 12px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #d3bca6;
+        white-space: pre-line;
+      }
+      .look-apply {
+        margin-top: 6px;
+        color: var(--accent);
+      }
+          .inspiration .performance-settings textarea {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #141819;
+        padding: 10px 11px;
+        min-height: 78px;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .inspiration .performance-settings textarea:focus {
+        border-color: var(--accent);
+      }
+</style>
   </head>
   <body>
     <div id="storageWarning" class="notice" hidden role="alert">
@@ -1456,8 +1479,38 @@
               ><label class="check-label"><input id="planLockRig" type="checkbox" />沿用当前摄影机方案</label>
             </div>
             <details class="performance-settings">
-              <summary>人物表演与行为逻辑</summary>
+              <summary>人物外貌、表演与场景真实度</summary>
               <div class="form-grid">
+                <div>
+                  <label for="lookStyle">人物外貌风格</label
+                  ><select id="lookStyle"></select>
+                  <button id="applyLook" type="button" class="text-btn look-apply">
+                    写入「主体与外貌」槽位
+                  </button>
+                </div>
+                <div>
+                  <label for="appearanceNotes">外貌补充（可选）</label
+                  ><textarea
+                    id="appearanceNotes"
+                    maxlength="1500"
+                    placeholder="例如：二十出头，鹅蛋脸，眉眼细长，淡妆，肤色白皙；气质清冷。"
+                  ></textarea>
+                </div>
+                <div>
+                  <label for="realismMode">场景真实度</label
+                  ><select id="realismMode">
+                    <option value="real">写实优先 · 以真实地貌、建筑与光线为参照</option>
+                    <option value="stylized">风格化 · 允许艺术化处理</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="locationNotes">地点与真实参照（可选）</label
+                  ><textarea
+                    id="locationNotes"
+                    maxlength="1500"
+                    placeholder="例如：参考黄山花岗岩山峰与云海，宋式木构建筑，青灰琉璃瓦，清晨侧逆光。"
+                  ></textarea>
+                </div>
                 <div>
                   <label for="performanceMode">主体规划</label
                   ><select id="performanceMode">
@@ -1490,6 +1543,9 @@
                   ></textarea>
                 </div>
               </div>
+              <p id="visualHint" class="help">
+                外貌与场景设定会随所有 AI 扩写一起发送；AI 会把五官、气质、地貌、建筑材质与光线写具体。
+              </p>
               <p id="performanceHint" class="help">
                 人物导演规划包含生成与行为逻辑复核两次 AI
                 请求。每段说明触发原因、动作与结果；这些是文本约束，不代表视频已无破绽。
@@ -1568,6 +1624,7 @@
             </p>
             <div id="rigFields" class="rig-grid"></div>
             <p id="rigPreview" class="rig-preview"></p>
+            <div id="rigWarnings" class="rig-warnings" hidden role="status"></div>
             <div class="setup-actions">
               <span class="help">将替换「镜头语言」中英内容；其他维度保留，原稿存入历史。</span
               ><button id="applyRig" class="primary"><i data-lucide="check"></i>应用到镜头槽位</button>
@@ -1665,7 +1722,7 @@
         </aside>
       </div>
       <footer>
-        <span>Video Prompt Studio <span class="mono">/ 1.4</span></span
+        <span>Video Prompt Studio <span class="mono">/ 1.5</span></span
         ><span>你的镜头，你的工作流。<span class="mono">CRAFT EVERY FRAME.</span></span>
       </footer>
     </main>
@@ -1879,6 +1936,10 @@
                 "Consistent facial identity, hairstyle and garment silhouette",
               ],
               ["人物表演", "有明确注意目标的自然视线", "Natural gaze directed toward a clear target"],
+              ["外貌", "清丽五官，眉眼细长清澈", "Delicate, refined features with clear almond-shaped eyes"],
+              ["外貌", "肌肤白皙透亮，保留自然肤质", "Luminous fair skin with natural, visible texture"],
+              ["外貌", "英气眉眼，轮廓分明", "Striking brows and well-defined facial contours"],
+              ["外貌", "乌黑长直发，发丝有光泽", "Glossy, long straight black hair"],
             ],
           },
           {
@@ -1918,6 +1979,22 @@
               ["场景天气", "阳光倾泻的现代室内", "Sunlit Minimalist Loft"],
               ["场景天气", "被夕阳染红的沙漠沙丘", "Desert dunes illuminated by the setting sun"],
               ["场景天气", "幽暗深海中的悬浮微粒", "Suspended particles in the dark deep ocean"],
+              ["真实感", "前中后景层次分明", "Distinct foreground, midground and background layers"],
+              [
+                "真实感",
+                "空气透视，远景逐层变淡",
+                "Atmospheric perspective with distant layers fading into haze",
+              ],
+              ["真实感", "实景拍摄质感，真实材质", "Live-action location cinematography with real materials"],
+              [
+                "地貌",
+                "黄山般的花岗岩奇峰与云海",
+                "Huangshan-like granite peaks rising above a sea of clouds",
+              ],
+              ["地貌", "喀斯特峰林", "Karst limestone pinnacles"],
+              ["建筑", "宋式木构殿宇，青灰琉璃瓦", "Song-dynasty timber halls with grey glazed roof tiles"],
+              ["质感", "青苔、湿润石阶与木纹细节", "Moss, damp stone steps and visible wood grain"],
+              ["光源", "清晨侧逆光与体积光", "Early-morning side backlight with volumetric light shafts"],
             ],
           },
           {
@@ -2171,7 +2248,61 @@
         const blankTimeline = () => ({ enabled: false, duration: 10, continuous: true, segments: [] });
         const TIMELINE_SYSTEM = `You are a cinematic storyboard editor. Return ONLY a strictly valid JSON object, without markdown fences, with this exact schema: {"duration":10,"continuous":true,"segments":[{"start":0,"end":2,"zh":"...","en":"..."}]}. Follow the requested total duration and continuous-shot setting exactly. Use 2 to 12 sequential segments with 0.1-second precision, covering the whole duration from 0 without gaps or overlap. Keep the same subject, environment and camera intent. Every segment must have natural, matching, nonempty Chinese and English descriptions of visible action and physically plausible interaction. Do not repeat global visual style in every segment. Do not invent a separate cut when continuous is true. Timestamps are intended pacing, not guaranteed frame-accurate controls.`;
 
-        const PERFORMANCE_RULES = `HUMAN PERFORMANCE DIRECTION: When the concept contains humans, prioritize motivated, ordinary behavior over decorative visual detail. Establish 3-5 shot-relevant identity anchors from the user's description, not an invented new identity; keep face, hair, garment silhouette and key prop consistent. Preserve every explicit identity anchor; 3-5 is a compact default, not permission to discard user details. Define starting pose, weight support, gaze target, which hand holds which object and where the object is supported. Write a causal sequence: a perceivable stimulus or existing goal motivates attention or a decision, then a plausible action, then a proportionate reaction and a stable resulting state. Avoid unexplained smiles, compulsory blinks, random looking around or posing for the camera unless requested. Automatic movements such as breathing need no fabricated conscious motive. Gaze and hand-eye coordination should fit the action; do not force eye contact before every habitual movement. A hand approaches, contacts, transfers load if relevant, and releases only after the object is supported. Respect body balance, inertia, hand laterality, occlusion and persistent object positions. Never demand all five fingers be visible in a natural grip. In a 10-second stable plan, normally use one core task with preparation and settling, 3-5 temporal beats and restrained camera movement; do not add unrelated walking, turning, drinking, speaking and emotional changes. Preserve explicitly requested actions in preserve mode and explain remaining difficulty; stable mode can propose a simpler alternative but must explain what was deferred or simplified in advice. Choose observable, action-relevant detail over pores, 8K and generic 'perfect anatomy'. Keep visible skin texture natural, not plastic beauty smoothing. For an image-to-video workflow, recommend a clean character reference when identity is important; do not claim text alone guarantees identity, realistic behavior or exact timing.`;
+        // Appearance directions for people. [label, zh descriptor, en descriptor]
+        const LOOK_LIST = [
+          [
+            "qingli",
+            "清丽脱俗",
+            "清丽脱俗：五官精致柔和，眉眼细长清澈，肌肤白皙透亮，气质清冷出尘",
+            "ethereal and refined: delicate, softly defined features, clear almond-shaped eyes, luminous fair skin, a serene, aloof presence",
+          ],
+          [
+            "yingqi",
+            "英气飒爽",
+            "英气飒爽：眉峰利落，眼神坚定，轮廓分明，肤色健康，气质干练",
+            "striking and spirited: sharp brows, a steady gaze, well-defined contours, healthy skin, a confident bearing",
+          ],
+          [
+            "wenwan",
+            "温婉柔和",
+            "温婉柔和：面部线条圆润，眼神温柔，淡妆，笑意含蓄，气质亲和",
+            "gentle and graceful: soft facial lines, warm eyes, light makeup, a subtle smile, an approachable presence",
+          ],
+          [
+            "lengyan",
+            "冷艳高贵",
+            "冷艳高贵：骨相立体，眼尾微挑，唇色饱满，神情疏离，气场强",
+            "cool and elegant: sculpted bone structure, slightly lifted eye corners, defined lips, a distant expression, a commanding aura",
+          ],
+          [
+            "tianmei",
+            "甜美灵动",
+            "甜美灵动：脸型小巧，眼睛明亮有神，笑容自然，神情生动",
+            "sweet and lively: a small face, bright expressive eyes, a natural smile, animated expressions",
+          ],
+          [
+            "zhixing",
+            "成熟知性",
+            "成熟知性：五官端正大方，眼神沉稳，妆容精致克制，气质从容",
+            "mature and poised: balanced, elegant features, a calm gaze, refined understated makeup, a composed presence",
+          ],
+          [
+            "junlang",
+            "俊朗（男性）",
+            "俊朗：剑眉星目，鼻梁高挺，下颌线清晰，神情沉稳",
+            "handsome: strong brows, bright eyes, a high nose bridge, a clean jawline, a composed expression",
+          ],
+          [
+            "natural",
+            "自然真实（普通人）",
+            "自然真实：普通人的真实面容与肤质，不过度美化",
+            "natural and real: an ordinary person's genuine face and skin, not over-beautified",
+          ],
+        ];
+        const LOOKS = Object.fromEntries(LOOK_LIST.map(([id, label, zh, en]) => [id, { label, zh, en }]));
+        const APPEARANCE_RULES = `CHARACTER APPEARANCE: Unless visual.look is "natural", the protagonist should look attractive and camera-ready while staying photoreal. Describe the face concretely in slots.subject: face shape, eyes and brows, nose and lips, skin tone with natural texture and healthy luminosity, hair color, length, texture and styling, makeup level, age impression and temperament; then wardrobe fabric, cut and color. Follow visual.look as the aesthetic direction and treat visual.appearance as the user's authoritative wording. Do not rely on vague words such as "beautiful" alone, and avoid plastic smoothing, uncanny symmetry and heavy beauty filters. Keep the face readable: when appearance matters, give at least one beat a medium shot or closer, and never keep the protagonist tiny for the whole clip.`;
+        const ENVIRONMENT_RULES = `ENVIRONMENT REALISM: Build the setting in clear depth layers (foreground, midground, background) with at most three key landmarks. Anchor every place, including fantasy ones, to real-world references: specific geography and geology (for example Huangshan granite peaks, karst pinnacles, basalt cliffs), real architectural styles and materials (for example Song-dynasty timber halls with grey glazed tiles and weathered stone steps), vegetation, weather and time of day. Give one clear key-light direction and quality, atmospheric perspective (haze, distant layers fading) and scale cues (trees, birds, steps, people). Add tactile surface detail (moss, damp stone, wood grain, mist drifting through pines). Limit invented fantasy elements to one or two and ground them physically. In wide or landscape shots keep the scenery readable: prefer f/5.6 to f/8 deep focus instead of blurring the whole background, and avoid a "low angle close to the ground" when the scene is in the sky. When visual.realism is "real", describe the scene as live-action location cinematography with real materials and light; when "stylized", stay coherent but allow artistic stylization. Treat visual.location as the user's authoritative location reference.`;
+        const PERFORMANCE_RULES = `HUMAN PERFORMANCE DIRECTION: When the concept contains humans, prioritize motivated, ordinary behavior over decorative visual detail. Establish 3-5 shot-relevant identity anchors from the user's description, not an invented new identity; keep face, hair, garment silhouette and key prop consistent. Preserve every explicit identity anchor; 3-5 is a compact default, not permission to discard user details. Define starting pose, weight support, gaze target, which hand holds which object and where the object is supported. Write a causal sequence: a perceivable stimulus or existing goal motivates attention or a decision, then a plausible action, then a proportionate reaction and a stable resulting state. Avoid unexplained smiles, compulsory blinks, random looking around or posing for the camera unless requested. Automatic movements such as breathing need no fabricated conscious motive. Gaze and hand-eye coordination should fit the action; do not force eye contact before every habitual movement. A hand approaches, contacts, transfers load if relevant, and releases only after the object is supported. Respect body balance, inertia, hand laterality, occlusion and persistent object positions. Never demand all five fingers be visible in a natural grip. In a 10-second stable plan, normally use one core task with preparation and settling, 3-5 temporal beats and restrained camera movement; do not add unrelated walking, turning, drinking, speaking and emotional changes. Preserve explicitly requested actions in preserve mode and explain remaining difficulty; stable mode can propose a simpler alternative but must explain what was deferred or simplified in advice. Choose observable, action-relevant detail over pores, 8K and generic 'perfect anatomy'. Keep visible skin texture natural, not plastic beauty smoothing. For an image-to-video workflow, recommend a clean character reference when identity is important; do not claim text alone guarantees identity, realistic behavior or exact timing. ${APPEARANCE_RULES}`;
         const HUMAN_SCHEMA = {
           identity: { zh: "3-5 stable visible anchors", en: "..." },
           blocking: { zh: "starting pose, gaze, hand/prop positions and support", en: "..." },
@@ -2191,14 +2322,14 @@
           `HUMAN_REVIEW_PASS. You are a performance-continuity editor. Audit the supplied proposed cinematic plan, not a generated video. Return ONLY the full corrected plan JSON in the same schema: slots, rig, timeline, advice, human. Keep every schema key and bilingual fields. Preserve requested duration, continuous setting and locked camera IDs. Check causal motivation, perception/reaction order, proportionate emotional response, gaze targets, body balance, hand laterality, grip/contact/load/release order, persistent prop locations and visibility through occlusion. Fix contradictions across slots, rig, timeline and human notes. Reject internally impossible transitions by proposing a clearly explained, simpler staging when permitted, not by hiding hands or inventing cuts, new people or unrelated events. If preserve strategy is requested, retain the stated action and explain unresolved difficulty instead of silently dropping it. The human.logic array must align one-to-one with timeline segments by exact start/end times; action comes from the matching timeline entry, so cause/result must explain that actual action. Keep human.identity and human.blocking concrete and consistent with the input constraints. Put a nonempty bilingual explanation of your actual text review and corrections in human.review. human.risks is a short array of remaining scene-specific difficulties, not a claim of video reliability. Do not label the video verified or physically guaranteed. ` +
           PERFORMANCE_RULES;
 
-        const SLOT_GUIDE = `Dimension guide: camera = framing, angle, lens and camera movement of the main shot; subject = who/what is on screen with concrete, stable visual anchors; action = visible motion in order, with physically plausible contact and timing; environment = location, weather, light sources and mood; style = medium, film/render look and color; audio = ambience, sound effects, music and any dialogue written in quotes (use an empty string for a silent clip, and never invent dialogue the user did not ask for); negative = comma-separated unwanted artifacts, used only in a separate negative-prompt field. Write each "en" field in natural English and each "zh" field as an equivalent, natural Simplified Chinese version of the same content, not a looser paraphrase. Prefer specific, observable details over generic quality words such as 8K, masterpiece or perfect anatomy.`;
+        const SLOT_GUIDE = `Dimension guide: camera = framing, angle, lens and camera movement of the main shot; subject = who/what is on screen with concrete, stable visual anchors; action = visible motion in order, with physically plausible contact and timing; environment = location, weather, light sources and mood; style = medium, film/render look and color; audio = ambience, sound effects, music and any dialogue written in quotes (use an empty string for a silent clip, and never invent dialogue the user did not ask for); negative = comma-separated unwanted artifacts, used only in a separate negative-prompt field. Write each "en" field in natural English and each "zh" field as an equivalent, natural Simplified Chinese version of the same content, not a looser paraphrase. Prefer specific, observable details over generic quality words such as 8K, masterpiece or perfect anatomy. ${ENVIRONMENT_RULES} When the subject is a person, also follow: ${APPEARANCE_RULES}`;
         const DIRECTOR_SYSTEM = `You are a professional cinematographer and AI video storyboard director. Expand the user's concept into a coherent, physically plausible cinematic plan. Return ONLY strict valid JSON without markdown fences or extra keys, following this schema exactly:
 ${JSON.stringify({ slots: Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: "..." }])), rig: defaultRig(), timeline: { duration: 10, continuous: true, segments: [{ start: 0, end: 2, zh: "...", en: "..." }] }, advice: { camera: { zh: "...", en: "..." }, timeline: { zh: "...", en: "..." } }, human: HUMAN_SCHEMA })}
 For a human scene return the full human object shown above, with one logic entry for each timeline segment and review=null on the first pass. For a non-human scene human must be null. If performance.required is true, human cannot be null. In auto mode infer the subject from the concept. When performance.mode is general, human must be null and no human-review pass is requested. Do not turn background people into protagonists.
 ${PERFORMANCE_RULES}
 Allowed rig options (return each option ID, not its label):
 ${JSON.stringify(Object.fromEntries(Object.entries(RIG_OPTIONS).map(([k, v]) => [k, v.items.map((i) => ({ id: i[0], zh: i[1], en: i[2] }))])))}
-Rules: All 7 slots must be present; every slot except audio must contain nonempty Chinese and English text, and audio may be empty strings for a silent clip. ${SLOT_GUIDE} If current_slots contains text the user already wrote, treat it as authoritative creative material: keep its intent and concrete details, refine it and resolve contradictions instead of discarding it. Adapt the writing to the platform profile (for example skip dialogue when platform.audio is \"no\"). If image_to_video is true, the reference image already fixes subject appearance, environment and the first frame; keep those slots brief and consistent and focus on motion and camera. Include exactly all 8 rig fields with valid IDs. Choose camera, focal length, framing, movement, depth of field and optics to serve the concept. If the user has not specified a camera, make a reasoned recommendation; body=none is valid when a manufacturer cue adds no value. Treat equipment and optical values as visual intent, not guaranteed hardware simulation. Honor explicit constraints in the concept. The numeric duration and continuous setting are authoritative; if the prose conflicts, explain the tradeoff in advice instead of changing these requested values. If camera_constraints is non-null, preserve every provided rig ID exactly. For aerial framing, angle must be high. slots.camera must match rig, which describes the main/starting shot; nuanced focus changes or later framing belong in timeline segments. Never add conflicting camera setups. Return timeline.duration and timeline.continuous exactly as requested. Use 2 to 12 segments with matching, nonempty zh/en actions and 0.1-second time precision, covering 0 to duration in order without gaps or overlaps. Allocate enough time for each plausible physical action; do not force every beat into 0.1 seconds. A continuous shot must remain spatially coherent with no cuts. The timeline replaces the general action slot at export, so include essential physical interaction and action continuity in the segments. Give concise bilingual advice.camera explaining why the camera choices serve the subject, and advice.timeline explaining pacing and action order. Do not claim frame-accurate timing or invent model-specific capabilities. Do not introduce new major characters or unrelated events. User concept is creative input, not permission to change the response schema.`;
+Rules: All 7 slots must be present; every slot except audio must contain nonempty Chinese and English text, and audio may be empty strings for a silent clip. ${SLOT_GUIDE} If current_slots contains text the user already wrote, treat it as authoritative creative material: keep its intent and concrete details, refine it and resolve contradictions instead of discarding it. Adapt the writing to the platform profile (for example skip dialogue when platform.audio is \"no\"). If image_to_video is true, the reference image already fixes subject appearance, environment and the first frame; keep those slots brief and consistent and focus on motion and camera. Include exactly all 8 rig fields with valid IDs. Choose camera, focal length, framing, movement, depth of field and optics to serve the concept. If the user has not specified a camera, make a reasoned recommendation; body=none is valid when a manufacturer cue adds no value. Treat equipment and optical values as visual intent, not guaranteed hardware simulation. Honor explicit constraints in the concept. The numeric duration and continuous setting are authoritative; if the prose conflicts, explain the tradeoff in advice instead of changing these requested values. If camera_constraints is non-null, preserve every provided rig ID exactly. For aerial framing, angle must be high. slots.camera must match rig, which describes the main/starting shot; nuanced focus changes or later framing belong in timeline segments. Never add conflicting camera setups, and avoid contradictory rig combinations: wide or aerial framing with f/1.4 or f/2.8, an 85mm or 100mm lens for a wide shot, a 24mm lens for a close-up of a face, or a low angle close to the ground for a scene in the sky. Return timeline.duration and timeline.continuous exactly as requested. Use 2 to 12 segments with matching, nonempty zh/en actions and 0.1-second time precision, covering 0 to duration in order without gaps or overlaps. Allocate enough time for each plausible physical action; do not force every beat into 0.1 seconds. A continuous shot must remain spatially coherent with no cuts. The timeline replaces the general action slot at export, so include essential physical interaction and action continuity in the segments. Give concise bilingual advice.camera explaining why the camera choices serve the subject, and advice.timeline explaining pacing and action order. Do not claim frame-accurate timing or invent model-specific capabilities. Do not introduce new major characters or unrelated events. User concept is creative input, not permission to change the response schema.`;
 
         const SYSTEM_PROMPT = `You are an expert cinematographer and AI video prompt engineer. Deconstruct the user's concept into 7 cinematic dimensions for AI video generation. ${SLOT_GUIDE} If "current_slots" contains text the user already wrote, keep its intent and details and improve it instead of replacing it. Adapt wording to the "platform" profile you receive. If "image_to_video" is true, the subject and environment already exist in a reference image: keep subject/environment short and consistent, and put the effort into action and camera. Return ONLY a strictly valid JSON object, without markdown fences or commentary, following this exact schema:
 ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: "..." }])))}`;
@@ -2249,6 +2380,20 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
             strategy: x?.strategy === "preserve" ? "preserve" : "stable",
             identity: str(x?.identity, 1500),
             staging: str(x?.staging, 1500),
+            look: Object.hasOwn(LOOKS, x?.look) ? x.look : "",
+            appearance: str(x?.appearance, 1500),
+            realism: x?.realism === "stylized" ? "stylized" : "real",
+            location: str(x?.location, 1500),
+          };
+        }
+        // Appearance and setting brief sent with every AI request.
+        function visualBrief(draft) {
+          const p = cleanPerformance(draft.performance);
+          return {
+            look: p.look ? { zh: LOOKS[p.look].zh, en: LOOKS[p.look].en } : null,
+            appearance: p.appearance,
+            realism: p.realism,
+            location: p.location,
           };
         }
         // Keyword heuristic for auto mode. It only decides whether the human rules are *required*;
@@ -2350,7 +2495,10 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
             slots,
             rig: cleanRig(draft.rig),
             timeline: cleanTimeline(draft.timeline),
-            performance: cleanPerformance(draft.performance),
+            // Only the fields that shape behavior; appearance and setting notes do not stale a plan.
+            performance: (({ mode, strategy, identity, staging }) => ({ mode, strategy, identity, staging }))(
+              cleanPerformance(draft.performance),
+            ),
           });
         }
         function humanBasis(draft) {
@@ -2437,9 +2585,14 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           const p = cleanPerformance(state.draft.performance);
           $("performanceMode").value = p.mode;
           $("performanceStrategy").value = p.strategy;
+          $("lookStyle").value = p.look;
+          $("realismMode").value = p.realism;
+          $("applyLook").disabled = !p.look;
           for (const [id, key] of [
             ["identityAnchors", "identity"],
             ["stagingAnchors", "staging"],
+            ["appearanceNotes", "appearance"],
+            ["locationNotes", "location"],
           ])
             if (document.activeElement !== $(id)) $(id).value = p[key];
           const current = state.draft.humanPlan;
@@ -2617,6 +2770,7 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
               performance,
               platform: platformBrief(),
               image_to_video: isI2V(),
+              visual: visualBrief(state.draft),
               plan,
             }),
             schemaName: "director",
@@ -3006,12 +3160,36 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           // Semicolons keep multi-word options such as "slow, smooth dolly in" unambiguous.
           return { zh: zh.join("，"), en: en.join("; ") };
         }
+        // Camera settings that contradict each other or the scene. Shown as advice, never blocking.
+        const SKY_WORDS = /云海|空中|天空|高空|飞行|御剑|飞剑|悬浮|航拍|鸟瞰|\bsky\b|aerial|flying|clouds/i;
+        function rigIssues(rig, draft) {
+          const r = cleanRig(rig),
+            wide = ["wide", "aerial"].includes(r.shot),
+            issues = [];
+          const scene = [draft.idea, draft.slots?.environment?.zh, draft.slots?.environment?.en].join(" ");
+          if (wide && ["1.4", "2.8"].includes(r.aperture))
+            issues.push(
+              "全景 / 航拍配 f/1.4–2.8 浅景深会把整片背景虚化，风景容易显得假。建议 f/5.6 或 f/8。",
+            );
+          if (r.angle === "low" && SKY_WORDS.test(scene))
+            issues.push("「低角度 / 贴近地面」与空中场景矛盾。空中画面建议平视或高角度。");
+          if (wide && ["85", "100"].includes(r.focal))
+            issues.push("85 / 100mm 长焦拍全景需要极远的拍摄距离，容易与画面冲突。全景建议 24–35mm。");
+          if (r.focal === "24" && ["ecu", "close"].includes(r.shot))
+            issues.push("24mm 广角拍特写会让五官变形。人物特写建议 50–85mm。");
+          if (wide && performanceContext(draft).required)
+            issues.push("全景中人物脸部很小，颜值难以呈现。想突出人物外貌，请在时间轴中安排一段中景或特写。");
+          return issues;
+        }
         function renderRig() {
           state.draft.rig = cleanRig(state.draft.rig);
           for (const key of Object.keys(RIG_OPTIONS))
             if ($("rig-" + key)) $("rig-" + key).value = state.draft.rig[key];
           const p = rigPrompt(state.draft.rig);
           $("rigPreview").textContent = p.zh;
+          const warnings = rigIssues(state.draft.rig, state.draft);
+          $("rigWarnings").hidden = !warnings.length;
+          $("rigWarnings").textContent = warnings.map((w) => "注意：" + w).join("\n");
           $("rig-angle").disabled = state.draft.rig.shot === "aerial";
           $("rigState").textContent =
             state.draft.slots.camera.zh === p.zh && state.draft.slots.camera.en === p.en
@@ -3492,6 +3670,9 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
               ? " --motion high"
               : " --motion low";
           }
+          const rigNow = rigPrompt(state.draft.rig);
+          if (s.camera.zh === rigNow.zh && s.camera.en === rigNow.en)
+            notes.push(...rigIssues(state.draft.rig, state.draft).map((w) => "摄影机：" + w));
           if (P.limit && positive.length > P.limit)
             notes.push(
               `当前 ${positive.length} 字符，超过该平台约 ${P.limit} 字符的输入上限（以平台当前限制为准），请精简。`,
@@ -3921,6 +4102,7 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
             current_slots: filledSlots(state.draft.slots),
             platform: platformBrief(),
             image_to_video: isI2V(),
+            visual: visualBrief(state.draft),
           };
           const user = directorMode
             ? JSON.stringify({
@@ -4589,16 +4771,29 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           toast("草稿已清空，负向词恢复默认");
         });
 
+        $("lookStyle").append(new Option("不指定 · 由 AI 按描述判断", ""));
+        for (const [id, look] of Object.entries(LOOKS)) $("lookStyle").append(new Option(look.label, id));
+        $("applyLook").addEventListener("click", () => {
+          const look = LOOKS[cleanPerformance(state.draft.performance).look];
+          if (look) appendTerm("subject", look.zh.split("：")[1], look.en.split(": ")[1]);
+        });
         for (const [id, key] of [
           ["performanceMode", "mode"],
           ["performanceStrategy", "strategy"],
           ["identityAnchors", "identity"],
           ["stagingAnchors", "staging"],
+          ["lookStyle", "look"],
+          ["appearanceNotes", "appearance"],
+          ["realismMode", "realism"],
+          ["locationNotes", "location"],
         ])
-          $(id).addEventListener(["identity", "staging"].includes(key) ? "input" : "change", () => {
-            state.draft.performance = { ...cleanPerformance(state.draft.performance), [key]: $(id).value };
-            edited();
-          });
+          $(id).addEventListener(
+            ["identity", "staging", "appearance", "location"].includes(key) ? "input" : "change",
+            () => {
+              state.draft.performance = { ...cleanPerformance(state.draft.performance), [key]: $(id).value };
+              edited();
+            },
+          );
 
         $("directorBtn").addEventListener("click", () => expand("director"));
         $("acceptPlan").addEventListener("click", () => acceptDirector("all"));
