@@ -1,0 +1,4714 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="七维中英视频提示词工坊。离线创作、AI 扩写、多模型导出与 GitHub Gist 备份。"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>Video Prompt Studio · 视频提示词工坊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"
+      integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      :root {
+        --bg: #111415;
+        --panel: #191d1f;
+        --raised: #202628;
+        --line: #30383a;
+        --ink: #eef2f0;
+        --muted: #a1aeac;
+        --accent: #a9dfc5;
+        --accent-ink: #122b20;
+        --danger: #ffb3a6;
+        --radius: 12px;
+        font-family: "DM Sans", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        font-synthesis: none;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+      button,
+      select {
+        cursor: pointer;
+      }
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 36px;
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--raised);
+        color: var(--ink);
+        transition:
+          background 0.18s,
+          border-color 0.18s;
+      }
+      button:hover {
+        background: #2c3537;
+        border-color: #647370;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-ink);
+        font-weight: 700;
+      }
+      .primary:hover {
+        background: #c0edd7;
+        border-color: #c0edd7;
+      }
+      .ghost {
+        background: transparent;
+        border-color: transparent;
+        color: var(--muted);
+      }
+      .danger {
+        color: var(--danger);
+      }
+      .icon-btn {
+        padding: 8px;
+        min-width: 36px;
+      }
+      .lucide {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+      button .lucide {
+        pointer-events: none;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 26px;
+        letter-spacing: -0.025em;
+        font-weight: 600;
+      }
+      h2 {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      h3 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 3px;
+      }
+      small,
+      .muted {
+        color: var(--muted);
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      .tiny {
+        font-size: 12px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 3px 8px;
+        color: var(--muted);
+      }
+      .dot {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+      }
+      .topbar {
+        height: 70px;
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        border-bottom: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .brand-icon {
+        color: var(--accent);
+        display: flex;
+      }
+      .brand-icon .lucide {
+        width: 25px;
+        height: 25px;
+      }
+      .brand span:last-child {
+        font-weight: 400;
+        color: var(--muted);
+      }
+      nav {
+        display: flex;
+        gap: 5px;
+        margin-left: auto;
+      }
+      nav button {
+        background: transparent;
+        border-color: transparent;
+        color: var(--muted);
+      }
+      nav button.active {
+        color: var(--accent);
+        background: #24332b;
+      }
+      .header-state {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-left: 1px solid var(--line);
+        padding-left: 22px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      main {
+        max-width: 1600px;
+        margin: auto;
+        padding: 30px 32px 24px;
+      }
+      .page-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        gap: 12px;
+      }
+      .page-heading p {
+        color: var(--muted);
+        margin-top: 5px;
+        font-size: 14px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 410px;
+        gap: 24px;
+        align-items: start;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+      .inspiration {
+        padding: 19px 20px;
+        margin-bottom: 24px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .spread {
+        justify-content: space-between;
+      }
+      .section-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .section-label .lucide {
+        color: var(--accent);
+      }
+      .inspiration textarea {
+        border: 0;
+        background: transparent;
+        padding: 12px 0 7px;
+        min-height: 72px;
+        resize: vertical;
+        font-size: 15px;
+        line-height: 1.8;
+      }
+      .inspiration textarea:focus {
+        outline: 0;
+        box-shadow: none;
+      }
+      .inspiration textarea:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 4px;
+        border-radius: 4px;
+      }
+      .idea-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 4px;
+      }
+      .examples {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .examples button {
+        font-size: 12px;
+        min-height: 27px;
+        padding: 3px 8px;
+        background: transparent;
+        color: var(--muted);
+      }
+      .editor-heading {
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .editor-heading h2 {
+        font-size: 15px;
+      }
+      .slots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .slot {
+        padding: 16px;
+        min-width: 0;
+      }
+      .slot-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .slot-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .slot-title .lucide {
+        color: var(--muted);
+        width: 17px;
+        height: 17px;
+      }
+      .slot-title small {
+        font-size: 12px;
+        font-weight: 400;
+        display: block;
+        line-height: 1.4;
+        letter-spacing: 0.025em;
+      }
+      .slot-count {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      textarea,
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #141819;
+        color: var(--ink);
+        padding: 10px 11px;
+        outline: 0;
+        caret-color: var(--accent);
+      }
+      textarea {
+        resize: vertical;
+        line-height: 1.75;
+      }
+      input::placeholder,
+      textarea::placeholder {
+        color: #8c9a98;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px #a9dfc51a;
+      }
+      textarea[data-lang="en"] {
+        height: 95px;
+        font-size: 13px;
+      }
+      textarea[data-lang="zh"] {
+        height: 64px;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      .field-label {
+        font-size: 12px;
+        margin: 6px 0 3px;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+      }
+      .slot select {
+        font-size: 12px;
+        padding: 6px 8px;
+        background: var(--panel);
+        margin-top: 8px;
+      }
+      .chips {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .chip {
+        font-size: 12px;
+        min-height: 28px;
+        padding: 3px 7px;
+        background: #242c2b;
+        color: #b6c8c2;
+        border-color: #35443d;
+      }
+      .chip:hover {
+        color: var(--accent);
+      }
+      .output {
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+      }
+      .output-head {
+        padding: 18px 20px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .output-title {
+        font-size: 15px;
+      }
+      .live {
+        color: var(--accent);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .output-controls {
+        padding: 17px 20px;
+      }
+      .output-controls label {
+        font-size: 12px;
+      }
+      .segmented {
+        display: flex;
+        background: #121718;
+        border: 1px solid var(--line);
+        padding: 3px;
+        border-radius: 7px;
+        margin-top: 12px;
+      }
+      .segmented button {
+        flex: 1;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        min-height: 30px;
+        font-size: 13px;
+      }
+      .segmented button[aria-pressed="true"] {
+        background: #303b37;
+        color: var(--accent);
+      }
+      .format-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+        min-height: 34px;
+      }
+      .prompt-block {
+        margin: 0 20px 16px;
+        padding: 15px;
+        background: #111617;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+      }
+      .prompt-caption {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--accent);
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
+      }
+      .prompt-text {
+        font-size: 14px;
+        line-height: 1.95;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 440px;
+        overflow-y: auto;
+        color: #d7e1dc;
+      }
+      .negative .prompt-caption {
+        color: #d3bca6;
+      }
+      .negative .prompt-text {
+        font-size: 13px;
+        line-height: 1.8;
+        max-height: 104px;
+        color: #b7c1bd;
+      }
+      .text-btn {
+        padding: 0;
+        min-height: 22px;
+        background: transparent;
+        border: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .output-actions {
+        padding: 0 20px 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .output-actions .primary {
+        grid-column: 1/-1;
+      }
+      .output-footer {
+        border-top: 1px solid var(--line);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .bottom-note {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 24px;
+      }
+      .notice {
+        padding: 10px 16px;
+        background: #49332b;
+        color: #ffdbba;
+        font-size: 13px;
+      }
+      .hidden,
+      [hidden] {
+        display: none !important;
+      }
+      dialog {
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--bg);
+        color: var(--ink);
+        width: min(600px, calc(100% - 24px));
+        max-height: 90dvh;
+        box-shadow: 0 24px 70px #0008;
+      }
+      dialog::backdrop {
+        background: #0009;
+      }
+      dialog.drawer {
+        margin: 0 0 0 auto;
+        height: 100dvh;
+        max-height: 100dvh;
+        width: min(510px, 100%);
+        border-radius: 0;
+        border-top: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      .dialog-head {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 1;
+      }
+      .dialog-body {
+        padding: 20px 24px;
+      }
+      .dialog-body p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 15px;
+      }
+      .form-field {
+        margin-bottom: 16px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .settings-section {
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+      }
+      .settings-section h3 {
+        margin-bottom: 14px;
+      }
+      .help {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .history-tools {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .history-tools button {
+        white-space: nowrap;
+      }
+      .history-item {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .history-item h3 {
+        font-size: 14px;
+        overflow-wrap: anywhere;
+        margin: 6px 0;
+      }
+      .history-item p {
+        font-size: 13px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin: 0 0 10px;
+      }
+      .history-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .history-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .history-actions button {
+        font-size: 12px;
+        min-height: 29px;
+        padding: 4px 8px;
+      }
+      .history-actions .starred {
+        color: var(--accent);
+      }
+      .empty {
+        text-align: center;
+        padding: 50px 16px;
+        color: var(--muted);
+      }
+      .empty h3 {
+        color: var(--ink);
+        margin-bottom: 7px;
+      }
+      .library-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .library-item small {
+        display: block;
+        overflow-wrap: anywhere;
+      }
+      .library-item b {
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .toast-stack {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: calc(100% - 24px);
+        pointer-events: none;
+      }
+      .toast {
+        border: 1px solid #4b6559;
+        border-radius: 9px;
+        padding: 12px 18px;
+        background: #26372e;
+        color: #deeee4;
+        box-shadow: 0 8px 30px #0005;
+        font-size: 14px;
+        animation: toast-in 0.2s ease-out;
+      }
+      .toast.error {
+        background: #422d29;
+        border-color: #795248;
+        color: #ffe0d8;
+      }
+      .loading {
+        color: var(--accent);
+      }
+      @keyframes toast-in {
+        from {
+          transform: translateY(10px);
+          opacity: 0.5;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      ::selection {
+        background: #a9dfc5;
+        color: #122b20;
+      }
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #52615a #171c1b;
+      }
+      footer {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 28px 0 0;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+      }
+      @media (min-width: 1500px) {
+        .workspace {
+          grid-template-columns: minmax(0, 1fr) 460px;
+        }
+        .slot {
+          padding: 19px;
+        }
+        textarea[data-lang="en"] {
+          height: 105px;
+        }
+      }
+      @media (max-width: 1150px) {
+        .workspace {
+          grid-template-columns: minmax(0, 1fr) 350px;
+          gap: 18px;
+        }
+        main {
+          padding: 24px;
+        }
+        .topbar {
+          padding: 0 24px;
+          gap: 15px;
+        }
+        .header-state {
+          display: none;
+        }
+        .slots {
+          grid-template-columns: 1fr;
+        }
+        .slot textarea[data-lang="en"] {
+          height: 80px;
+        }
+        .slot textarea[data-lang="zh"] {
+          height: 55px;
+        }
+        .idea-bottom {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .idea-bottom > .row {
+          align-self: flex-end;
+        }
+      }
+      @media (max-width: 760px) {
+        .topbar {
+          height: auto;
+          min-height: 64px;
+          padding: 14px 16px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .brand {
+          font-size: 15px;
+        }
+        .brand span:last-child {
+          display: none;
+        }
+        nav {
+          gap: 2px;
+          width: 100%;
+          justify-content: space-between;
+        }
+        nav button {
+          font-size: 12px;
+          gap: 5px;
+          padding: 8px 6px;
+        }
+        nav button .lucide {
+          width: 18px;
+          height: 18px;
+        }
+        main {
+          padding: 23px 16px;
+        }
+        .page-heading {
+          align-items: flex-start;
+          margin-bottom: 20px;
+        }
+        h1 {
+          font-size: 23px;
+        }
+        .page-heading .badge {
+          display: none;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .slots {
+          grid-template-columns: 1fr;
+        }
+        .output {
+          position: static;
+          margin-top: 5px;
+        }
+        .inspiration {
+          padding: 16px;
+        }
+        .editor-heading .muted {
+          font-size: 12px;
+        }
+        .prompt-text {
+          max-height: unset;
+        }
+        .bottom-note {
+          flex-direction: column;
+          gap: 4px;
+        }
+        footer {
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .dialog-body {
+          padding: 20px;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .examples button {
+          min-height: 32px;
+        }
+        .chip {
+          min-height: 29px;
+        }
+        .output-controls .format-hint {
+          min-height: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      .setup-panel {
+        margin-bottom: 20px;
+        padding: 18px 20px;
+      }
+      .setup-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .setup-head h2 {
+        font-size: 15px;
+      }
+      .setup-head .lucide {
+        color: var(--accent);
+      }
+      .setup-copy {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0 16px;
+      }
+      .rig-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .rig-grid label {
+        font-size: 12px;
+      }
+      .rig-grid select {
+        font-size: 13px;
+        padding: 9px;
+      }
+      .rig-preview {
+        margin: 15px 0 12px;
+        font-size: 13px;
+        line-height: 1.8;
+        color: #c2d1ca;
+      }
+      .setup-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .setup-actions .help {
+        margin: 0;
+        max-width: 46ch;
+      }
+      .check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ink);
+        margin: 0;
+        font-size: 13px;
+      }
+      .check-label input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+      }
+      .timeline-toolbar {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      .duration-field {
+        width: 135px;
+      }
+      .timeline-tools {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+      .timeline-tools button {
+        font-size: 13px;
+      }
+      .time-strip {
+        display: flex;
+        gap: 3px;
+        height: 8px;
+        margin: 14px 0 7px;
+        background: var(--line);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .time-strip span {
+        background: #6a9b83;
+        min-width: 2px;
+      }
+      .time-strip span:nth-child(even) {
+        background: var(--accent);
+      }
+      .timeline-row {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .timeline-row:last-child {
+        border-bottom: 0;
+      }
+      .time-row-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .time-number {
+        font-size: 12px;
+        color: var(--accent);
+        margin-right: auto;
+      }
+      .time-field {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .time-field input {
+        width: 78px;
+        padding: 6px 8px;
+        font-size: 13px;
+      }
+      .timeline-texts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .timeline-texts label {
+        font-size: 12px;
+      }
+      .timeline-texts textarea {
+        font-size: 13px;
+        min-height: 78px;
+        margin-top: 4px;
+      }
+      .timeline-status {
+        font-size: 13px;
+        margin-top: 12px;
+        color: var(--accent);
+        white-space: pre-line;
+      }
+      .timeline-status.invalid {
+        color: var(--danger);
+      }
+      .output-warning {
+        padding: 10px 12px;
+        margin: 0 20px 14px;
+        font-size: 13px;
+        color: var(--danger);
+        border: 1px solid #795248;
+        border-radius: 7px;
+        background: #30231f;
+      }
+      .negative-help {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      .mobile-output-link {
+        display: none;
+      }
+      .output {
+        max-height: calc(100dvh - 40px);
+        overflow-y: auto;
+      }
+      .import-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--raised);
+        padding: 7px 12px;
+        min-height: 36px;
+        color: var(--ink);
+        cursor: pointer;
+        margin: 0;
+        font-size: 13px;
+      }
+      .import-label:focus-within {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+      }
+      .import-label input {
+        width: 1px;
+        height: 1px;
+        position: absolute;
+        opacity: 0;
+        padding: 0;
+        border: 0;
+      }
+      @media (max-width: 1150px) {
+        .rig-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .setup-actions {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .setup-actions .help {
+          max-width: none;
+        }
+        .timeline-texts {
+          grid-template-columns: 1fr;
+        }
+        .time-field input {
+          width: 73px;
+        }
+      }
+      @media (max-width: 760px) {
+        .setup-panel {
+          padding: 16px;
+        }
+        .rig-grid {
+          gap: 10px;
+        }
+        .setup-head {
+          align-items: flex-start;
+        }
+        .setup-head .badge {
+          display: none;
+        }
+        .output {
+          max-height: none;
+          overflow: visible;
+        }
+        .time-row-head {
+          gap: 5px;
+          flex-wrap: wrap;
+        }
+        .time-field input {
+          width: 72px;
+        }
+        .time-number {
+          font-size: 12px;
+        }
+        .timeline-toolbar {
+          gap: 12px;
+        }
+        .timeline-tools {
+          width: 100%;
+        }
+        .mobile-output-link {
+          display: inline-flex;
+          position: fixed;
+          bottom: 18px;
+          right: 16px;
+          z-index: 5;
+          align-items: center;
+          gap: 7px;
+          padding: 10px 15px;
+          border-radius: 8px;
+          background: var(--accent);
+          color: var(--accent-ink);
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          box-shadow: 0 5px 18px #0006;
+        }
+        footer {
+          padding-bottom: 55px;
+        }
+        .editor-heading > .row > .muted {
+          display: none;
+        }
+      }
+
+      .brief-settings {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 10px 0 14px;
+      }
+      .brief-duration {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .brief-duration input {
+        width: 76px;
+        padding: 6px 8px;
+        font-size: 13px;
+      }
+      .director-help {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+      .idea-bottom > .row {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .plan-result {
+        border-top: 1px solid var(--line);
+        margin-top: 20px;
+        padding-top: 18px;
+      }
+      .plan-result h2 {
+        font-size: 15px;
+      }
+      .plan-subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0 14px;
+      }
+      .plan-label {
+        font-size: 13px;
+        color: var(--accent);
+        font-weight: 600;
+        margin: 14px 0 6px;
+      }
+      .plan-copy {
+        font-size: 13px;
+        line-height: 1.85;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .plan-reason {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .plan-time {
+        display: grid;
+        grid-template-columns: 86px 1fr;
+        gap: 12px;
+        font-size: 13px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .plan-time:last-child {
+        border: 0;
+      }
+      .plan-time span {
+        color: var(--accent);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .plan-time p {
+        overflow-wrap: anywhere;
+      }
+      .plan-details {
+        margin-top: 16px;
+        font-size: 13px;
+      }
+      .plan-details summary {
+        cursor: pointer;
+        color: var(--muted);
+        padding: 8px 0;
+      }
+      .plan-details dl {
+        margin: 8px 0 0;
+      }
+      .plan-details dt {
+        font-weight: 600;
+        color: var(--accent);
+        margin-top: 12px;
+      }
+      .plan-details dd {
+        margin: 4px 0 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .plan-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .plan-actions button {
+        font-size: 13px;
+      }
+      .plan-stale {
+        color: var(--danger);
+        font-size: 13px;
+        line-height: 1.7;
+        margin: 12px 0;
+      }
+      .advice-note {
+        margin: 14px 0 0;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .advice-note summary {
+        cursor: pointer;
+      }
+      .advice-note p {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin-top: 8px;
+        line-height: 1.8;
+      }
+      @media (max-width: 760px) {
+        .brief-settings {
+          gap: 12px;
+        }
+        .brief-settings > .check-label:last-child {
+          width: 100%;
+        }
+        .idea-bottom > .row {
+          align-self: stretch;
+        }
+        .idea-bottom > .row > button {
+          flex: 1;
+        }
+        .idea-bottom > .row > #cancelAI {
+          flex: 0;
+        }
+        .plan-actions .primary {
+          flex-basis: 100%;
+        }
+        .plan-time {
+          grid-template-columns: 78px 1fr;
+          gap: 8px;
+        }
+      }
+
+      .performance-settings {
+        margin: 12px 0 16px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .performance-settings summary {
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--accent);
+      }
+      .performance-settings .form-grid {
+        margin-top: 14px;
+      }
+      .performance-settings textarea {
+        font-size: 13px;
+        min-height: 78px;
+      }
+      .performance-settings select {
+        font-size: 13px;
+      }
+      .human-sheet {
+        margin-top: 16px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .human-sheet h3 {
+        font-size: 15px;
+      }
+      .human-facts {
+        font-size: 13px;
+        line-height: 1.8;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .human-beat {
+        border-top: 1px solid var(--line);
+        padding: 12px 0;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .human-beat b {
+        color: var(--accent);
+        font-weight: 500;
+        font-size: 12px;
+      }
+      .human-beat p {
+        margin-top: 5px;
+        overflow-wrap: anywhere;
+      }
+      .human-beat strong {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .human-status {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 10px 0;
+      }
+      .human-status.stale {
+        color: var(--danger);
+      }
+      .human-risks {
+        font-size: 13px;
+        color: #d3bca6;
+        line-height: 1.8;
+        margin: 10px 0;
+        padding-left: 18px;
+      }
+      .output-note {
+        padding: 10px 12px;
+        margin: 0 20px 14px;
+        font-size: 13px;
+        color: #d3bca6;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        white-space: pre-line;
+      }
+      .i2v-toggle {
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="storageWarning" class="notice" hidden role="alert">
+      浏览器存储不可用或空间已满。当前内容仍可编辑，请先导出 JSON 备份。
+    </div>
+    <div id="sandboxNotice" class="notice" hidden role="status">
+      在线体验版：编辑、示例、各平台导出、复制、历史与词库都可正常使用。AI 扩写、Gist 同步和文件下载需要把
+      index.html 部署到自己的网站或本机打开后使用。
+    </div>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon"><i data-lucide="clapperboard"></i></span>VIDEO PROMPT <span>STUDIO</span>
+      </div>
+      <nav aria-label="工作台导航">
+        <button class="active" id="studioNav"><i data-lucide="sliders-horizontal"></i>创作工坊</button
+        ><button data-open="historyDialog">
+          <i data-lucide="history"></i>历史记录 <span id="historyCount" class="tiny">0</span></button
+        ><button data-open="libraryDialog"><i data-lucide="book-open"></i>我的词库</button
+        ><button data-open="settingsDialog"><i data-lucide="settings-2"></i>连接设置</button>
+      </nav>
+      <div class="header-state">
+        <span class="dot"></span><span id="connectionStatus">离线模式 · 就绪</span>
+      </div>
+    </header>
+    <main>
+      <div class="page-heading">
+        <div>
+          <h1>把灵感，写成镜头。</h1>
+          <p>从一句构想到七维提示词，让每个画面都有明确的表达。</p>
+        </div>
+        <span class="badge"
+          ><i data-lucide="hard-drive" style="width: 12px; height: 12px"></i
+          ><span id="saveStatus">本机自动保存</span></span
+        >
+      </div>
+      <div class="workspace">
+        <section aria-label="提示词编辑器">
+          <div class="panel inspiration">
+            <div class="row spread">
+              <label for="idea" class="section-label" style="color: var(--ink); margin: 0"
+                ><i data-lucide="sparkles"></i>从一个灵感开始</label
+              ><span class="badge">CONCEPT → SCENE</span>
+            </div>
+            <textarea
+              id="idea"
+              maxlength="4000"
+              placeholder="描述你的画面：主体在哪里，正在做什么，是什么氛围……"
+              aria-label="一句话灵感"
+            ></textarea>
+            <div class="brief-settings">
+              <label class="brief-duration" for="planDuration"
+                >时长<input
+                  id="planDuration"
+                  type="number"
+                  min="1"
+                  max="120"
+                  step="0.1"
+                  value="10"
+                />秒</label
+              ><label class="check-label"
+                ><input id="planContinuous" type="checkbox" checked />连续长镜头</label
+              ><label class="check-label"><input id="planLockRig" type="checkbox" />沿用当前摄影机方案</label>
+            </div>
+            <details class="performance-settings">
+              <summary>人物表演与行为逻辑</summary>
+              <div class="form-grid">
+                <div>
+                  <label for="performanceMode">主体规划</label
+                  ><select id="performanceMode">
+                    <option value="auto">自动判断人物 / 其他主体</option>
+                    <option value="human">人物表演 · 加强行为逻辑</option>
+                    <option value="general">通用场景</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="performanceStrategy">人物动作安排</label
+                  ><select id="performanceStrategy">
+                    <option value="stable">稳妥自然 · 减少无动机动作</option>
+                    <option value="preserve">保留原述动作 · 指出难点</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="identityAnchors">固定身份、发型与服饰（可选）</label
+                  ><textarea
+                    id="identityAnchors"
+                    maxlength="1500"
+                    placeholder="例如：同一位成年女性，短直黑发，米色圆领针织衫；沿用我描述中的身份特征。"
+                  ></textarea>
+                </div>
+                <div>
+                  <label for="stagingAnchors">起始姿态、物体位置与行为目的（可选）</label
+                  ><textarea
+                    id="stagingAnchors"
+                    maxlength="1500"
+                    placeholder="例如：坐在桌旁，双手捧杯；先把杯放稳，再腾出手看窗外。"
+                  ></textarea>
+                </div>
+              </div>
+              <p id="performanceHint" class="help">
+                人物导演规划包含生成与行为逻辑复核两次 AI
+                请求。每段说明触发原因、动作与结果；这些是文本约束，不代表视频已无破绽。
+              </p>
+            </details>
+            <div class="idea-bottom">
+              <div class="examples">
+                <span class="tiny muted">试试</span><button data-example="cat">雨夜流浪猫</button
+                ><button data-example="desert">沙漠旅人</button><button data-example="ocean">深海水母</button
+                ><button data-example="boat">10秒猫与纸船</button
+                ><button data-example="human">人物放杯 · 10秒</button>
+              </div>
+              <div class="row">
+                <button id="cancelAI" class="ghost" hidden>取消</button
+                ><button id="expandBtn">
+                  <i data-lucide="wand-sparkles"></i><span id="expandLabel">仅扩写各维度</span></button
+                ><button id="directorBtn" class="primary">
+                  <i data-lucide="clapperboard"></i><span id="directorLabel">AI 导演规划</span>
+                </button>
+              </div>
+            </div>
+            <p class="director-help">
+              导演规划会结合描述与你已填写的内容扩写各维度、推荐摄影机并安排时间轴。先查看理由，再采纳；未勾选沿用时，由
+              AI 自行建议摄影机参数。
+            </p>
+            <div id="aiStatus" class="help" role="status" hidden></div>
+            <section id="directorProposal" class="plan-result" aria-labelledby="proposalTitle" hidden>
+              <div class="row spread">
+                <h2 id="proposalTitle">导演建议 · 待采纳</h2>
+                <button id="dismissProposal" class="ghost text-btn">放弃建议</button>
+              </div>
+              <p id="proposalSummary" class="plan-subtitle"></p>
+              <p id="proposalStale" class="plan-stale" role="status" hidden>
+                描述或设置已改动，这份建议已过期。请重新规划，当前草稿会保留。
+              </p>
+              <div class="plan-label">建议摄影机方案</div>
+              <p id="proposalCamera" class="plan-copy"></p>
+              <p id="proposalCameraReason" class="plan-reason"></p>
+              <div class="plan-label">建议分镜时间轴</div>
+              <p id="proposalTimelineReason" class="plan-reason"></p>
+              <div id="proposalTimeline"></div>
+              <div id="proposalHuman" class="human-sheet" hidden></div>
+              <details class="plan-details">
+                <summary>查看扩写后的各维度内容</summary>
+                <dl id="proposalSlots"></dl>
+              </details>
+              <div class="plan-actions">
+                <button id="acceptPlan" class="primary"><i data-lucide="check"></i>采纳整套方案</button
+                ><button id="acceptCamera">仅采纳相机</button
+                ><button id="acceptTimeline">仅采纳时间轴</button>
+              </div>
+              <p class="help">
+                整套采纳会同步各维度、摄影机和时间轴，并先保存原稿。单独采纳时间轴后，请核对它与当前摄影机是否一致。
+              </p>
+            </section>
+            <details id="directorAdvice" class="advice-note" hidden>
+              <summary>已采纳的规划说明 · 手动编辑后仅作参考</summary>
+              <p id="adviceCamera"></p>
+              <p id="adviceTimeline"></p>
+            </details>
+          </div>
+          <section id="humanAccepted" class="panel setup-panel" aria-labelledby="humanAcceptedTitle" hidden>
+            <h2 id="humanAcceptedTitle" style="font-size: 15px">人物设定与行为逻辑</h2>
+            <details class="plan-details">
+              <summary>查看人物设定与行为因果表</summary>
+              <div id="humanAcceptedContent"></div>
+            </details>
+          </section>
+          <section class="panel setup-panel" aria-labelledby="rigTitle">
+            <div class="setup-head">
+              <h2 id="rigTitle" class="row"><i data-lucide="camera"></i>摄影机与镜头</h2>
+              <span id="rigState" class="badge">尚未应用</span>
+            </div>
+            <p class="setup-copy">
+              先选拍摄方案，再应用到镜头槽位。机身名称是视觉参考，不能保证模型复现真实摄影机成像。
+            </p>
+            <div id="rigFields" class="rig-grid"></div>
+            <p id="rigPreview" class="rig-preview"></p>
+            <div class="setup-actions">
+              <span class="help">将替换「镜头语言」中英内容；其他维度保留，原稿存入历史。</span
+              ><button id="applyRig" class="primary"><i data-lucide="check"></i>应用到镜头槽位</button>
+            </div>
+          </section>
+          <section class="panel setup-panel" aria-labelledby="timelineTitle">
+            <div class="setup-head">
+              <h2 id="timelineTitle" class="row"><i data-lucide="film"></i>分镜时间轴</h2>
+              <label class="check-label"><input id="timelineEnabled" type="checkbox" />启用时间码</label>
+            </div>
+            <p class="setup-copy">
+              按 0.1
+              秒编辑节奏。启用后分段动作替代「动作与动力学」槽位导出；时间码是意图参考，实际节奏取决于模型。
+            </p>
+            <div class="timeline-toolbar">
+              <div class="duration-field">
+                <label for="duration">总时长 / 秒</label
+                ><input id="duration" type="number" min="1" max="120" step="0.1" value="10" />
+              </div>
+              <label class="check-label"><input id="continuous" type="checkbox" checked />连续长镜头</label>
+              <div class="timeline-tools">
+                <button id="addSegment"><i data-lucide="plus"></i>添加时段</button
+                ><button id="aiTimeline">
+                  <i data-lucide="sparkles"></i><span id="timelineAILabel">AI 编排</span>
+                </button>
+              </div>
+            </div>
+            <div class="time-strip" id="timeStrip" aria-hidden="true"></div>
+            <div id="timelineRows"></div>
+            <div id="timelineStatus" class="timeline-status" role="status"></div>
+          </section>
+          <div class="editor-heading">
+            <h2>七维镜头构建</h2>
+            <div class="row">
+              <span class="muted tiny">点击词条追加 · 中英独立编辑</span
+              ><button id="clearBtn" class="ghost text-btn">清空</button>
+            </div>
+          </div>
+          <div id="slots" class="slots"></div>
+          <div class="bottom-note">
+            <span
+              ><i data-lucide="shield-check" style="width: 12px; height: 12px; vertical-align: middle"></i>
+              离线组装免费 · AI 由你配置的接口提供</span
+            ><span id="dimensionCount">0 / 6 维度已填写</span>
+          </div>
+        </section>
+        <aside id="outputPanel" class="panel output" aria-label="实时提示词输出">
+          <div class="output-head row spread">
+            <h2 class="output-title">成片提示词</h2>
+            <span class="live"><span class="dot"></span>实时预览</span>
+          </div>
+          <div class="output-controls">
+            <label for="target">目标模型 / 导出格式</label
+            ><select id="target"></select>
+            <label class="check-label i2v-toggle"
+              ><input id="i2vMode" type="checkbox" />图生视频（已有首帧参考图）</label
+            >
+            <div id="formatHint" class="format-hint"></div>
+            <div class="segmented" aria-label="输出语言">
+              <button data-language="en" aria-pressed="true">English</button
+              ><button data-language="zh" aria-pressed="false">中文对照</button>
+            </div>
+          </div>
+          <div id="outputWarning" class="output-warning" hidden role="status"></div>
+          <div id="outputNote" class="output-note" hidden role="status"></div>
+          <div class="prompt-block">
+            <div class="prompt-caption">
+              <span>POSITIVE PROMPT</span><span id="charCount" class="mono">0 CHARS</span>
+            </div>
+            <div id="positiveOutput" class="prompt-text" tabindex="0" aria-label="正向提示词"></div>
+          </div>
+          <div class="prompt-block negative">
+            <div class="prompt-caption">
+              <span>NEGATIVE PROMPT</span
+              ><button id="copyNegative" class="text-btn">
+                <i data-lucide="copy" style="width: 12px; height: 12px"></i>复制
+              </button>
+            </div>
+            <div id="negativeOutput" class="prompt-text" tabindex="0" aria-label="负向提示词"></div>
+            <p id="negativeHelp" class="negative-help">
+              只粘贴到平台独立的负向输入框。没有该字段时，请用正向描述约束画面。
+            </p>
+          </div>
+          <div class="output-actions">
+            <button id="copyPositive" class="primary"><i data-lucide="copy"></i>复制正向提示词</button
+            ><button id="saveHistory"><i data-lucide="bookmark-plus"></i>存入历史</button
+            ><button id="downloadTxt"><i data-lucide="download"></i>导出 TXT</button
+            ><button id="downloadJson" style="grid-column: 1/-1" class="ghost">
+              <i data-lucide="file-json"></i>导出完整创作 JSON
+            </button>
+          </div>
+          <div class="output-footer">
+            <span>七维结构 · 双语工作流</span><span class="mono" id="wordCount">0 WORDS</span>
+          </div>
+        </aside>
+      </div>
+      <footer>
+        <span>Video Prompt Studio <span class="mono">/ 1.4</span></span
+        ><span>你的镜头，你的工作流。<span class="mono">CRAFT EVERY FRAME.</span></span>
+      </footer>
+    </main>
+    <a class="mobile-output-link" href="#outputPanel"><i data-lucide="arrow-down-right"></i>查看成片提示词</a>
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+      <div class="dialog-head">
+        <h2 id="settingsTitle">连接与备份</h2>
+        <button class="ghost icon-btn" data-close aria-label="关闭设置"><i data-lucide="x"></i></button>
+      </div>
+      <div class="dialog-body">
+        <form id="settingsForm">
+          <section class="settings-section">
+            <h3 class="row"><i data-lucide="plug"></i>AI 扩写接口</h3>
+            <p>直接从浏览器请求 OpenAI 兼容的 Chat Completions API。服务需允许当前页面的跨域请求。</p>
+            <div class="form-field">
+              <label for="provider">快速配置</label
+              ><select id="provider">
+                <option value="custom">自定义兼容接口</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="dashscope">阿里云百炼（通义千问）</option>
+                <option value="openai">OpenAI</option>
+                <option value="openrouter">OpenRouter（多家模型）</option>
+                <option value="ollama">Ollama 本机 / 局域网</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="apiBase">API Base URL 或完整 Chat Completions 地址</label
+              ><input
+                id="apiBase"
+                type="url"
+                placeholder="https://api.deepseek.com/v1"
+                maxlength="500"
+                autocomplete="off"
+              />
+              <div class="help">
+                基础地址会自动补全 /chat/completions。公网地址使用 HTTPS；本机与局域网地址允许 HTTP。
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="apiModel">模型名称</label
+                ><input id="apiModel" placeholder="deepseek-chat" maxlength="150" autocomplete="off" />
+              </div>
+              <div class="form-field">
+                <label for="apiKey">API Key（本机 Ollama 可留空）</label
+                ><input id="apiKey" type="password" autocomplete="off" maxlength="500" placeholder="sk-…" />
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="responseFormat">输出格式约束（response_format）</label
+              ><select id="responseFormat">
+                <option value="none">不发送 · 兼容性最好</option>
+                <option value="json_object">json_object · JSON Mode</option>
+                <option value="json_schema">json_schema · 结构化输出（最稳定，需接口支持）</option>
+              </select>
+              <div class="help">
+                三种设置都会严格校验结果；不合格时自动请求修正一次。OpenAI 及兼容结构化输出的接口建议选
+                json_schema；接口报 400 错误时改回「不发送」。
+              </div>
+            </div>
+          </section>
+          <section class="settings-section">
+            <h3 class="row"><i data-lucide="github"></i>GitHub Gist 备份中心</h3>
+            <div class="form-field">
+              <label for="githubPat">Personal Access Token · 仅需 gist 权限</label
+              ><input id="githubPat" type="password" autocomplete="off" maxlength="500" placeholder="ghp_…" />
+            </div>
+            <div class="form-field">
+              <label for="gistId">Gist ID（留空则上传时创建）</label
+              ><input id="gistId" autocomplete="off" placeholder="例如 32 位十六进制 ID" maxlength="64" />
+            </div>
+            <p>
+              上传只包含历史、收藏、自定义词条和界面选项，绝不包含 API 设置或密钥。新建为 Secret
+              Gist（不公开列出，持有链接的人仍可访问）。
+            </p>
+            <div class="row" style="flex-wrap: wrap">
+              <button type="button" id="uploadGist"><i data-lucide="cloud-upload"></i>上传云端</button
+              ><button type="button" id="pullGist"><i data-lucide="cloud-download"></i>从云端拉取</button
+              ><button type="button" id="backupJson" class="ghost">下载本地备份</button
+              ><label class="import-label"
+                >导入备份<input
+                  id="importBackup"
+                  type="file"
+                  accept=".json,application/json"
+                  aria-label="选择要导入的JSON备份"
+              /></label>
+            </div>
+            <div id="syncStatus" class="help" role="status">尚未同步</div>
+          </section>
+          <p>凭证以明文保存在此浏览器的 localStorage，请在可信设备使用。下载备份与云端备份共用脱敏白名单。</p>
+          <div class="row spread">
+            <button type="button" id="clearCredentials" class="ghost danger">清除本机凭证</button
+            ><button type="submit" class="primary"><i data-lucide="check"></i>保存设置</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    <dialog id="historyDialog" class="drawer" aria-labelledby="historyTitle">
+      <div class="dialog-head">
+        <h2 id="historyTitle">本地历史 <span id="historyTotal" class="muted tiny"></span></h2>
+        <button class="ghost icon-btn" data-close aria-label="关闭历史"><i data-lucide="x"></i></button>
+      </div>
+      <div class="dialog-body">
+        <div class="history-tools">
+          <input
+            id="historySearch"
+            type="search"
+            placeholder="搜索灵感、中文或英文词条"
+            aria-label="搜索历史"
+          /><button id="favoriteFilter" aria-pressed="false"><i data-lucide="star"></i>收藏</button>
+        </div>
+        <p>
+          编辑时自动保存会持续更新同一条记录；点击「存入历史」或 Ctrl/Cmd + Enter
+          会固定为独立一条。普通记录保留最近 50
+          条，收藏的记录置顶且不计入上限、不会被自动清理。重载后会替换当前槽位。
+        </p>
+        <div id="historyList"></div>
+      </div>
+    </dialog>
+    <dialog id="libraryDialog" class="drawer" aria-labelledby="libraryTitle">
+      <div class="dialog-head">
+        <h2 id="libraryTitle">我的词库</h2>
+        <button class="ghost icon-btn" data-close aria-label="关闭词库"><i data-lucide="x"></i></button>
+      </div>
+      <div class="dialog-body">
+        <p>保存常用表达。加入后即可从相应维度的预设菜单中选择。</p>
+        <form id="libraryForm">
+          <div class="form-field">
+            <label for="librarySlot">所属维度</label
+            ><select id="librarySlot"></select>
+          </div>
+          <div class="form-field">
+            <label for="libraryZh">中文词条</label
+            ><input id="libraryZh" required maxlength="500" placeholder="例如：逆光下的细微尘埃" />
+          </div>
+          <div class="form-field">
+            <label for="libraryEn">英文词条</label
+            ><input
+              id="libraryEn"
+              required
+              maxlength="500"
+              placeholder="Fine dust particles drifting in backlight"
+            />
+          </div>
+          <button class="primary" type="submit"><i data-lucide="plus"></i>保存词条</button>
+        </form>
+        <div style="margin-top: 24px" id="customLibrary"></div>
+      </div>
+    </dialog>
+    <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+      <div class="dialog-head"><h2 id="confirmTitle">清空当前创作？</h2></div>
+      <div class="dialog-body">
+        <p>各维度槽位、时间轴和灵感将被清空，摄影机选择重置，负向词恢复默认。已保存的历史不受影响。</p>
+        <div class="row" style="justify-content: flex-end">
+          <button data-close>取消</button><button id="confirmClear" class="danger">清空草稿</button>
+        </div>
+      </div>
+    </dialog>
+    <div id="toasts" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <script>
+      "use strict";
+      (() => {
+        const $ = (id) => document.getElementById(id);
+        const KEYS = { data: "vps.studio.v1", credentials: "vps.credentials.v1" };
+        const MAX_TEXT = 12000;
+        const DEFAULT_NEG =
+          "deformed limbs, extra fingers, distorted face, erratic motion, flickering artifacts, low frame rate, blurry details, watermark, subtitles, low quality 3D render";
+        const DEFAULT_NEG_ZH =
+          "肢体畸形，多余手指，面部扭曲，动作不连贯，闪烁伪影，低帧率，细节模糊，水印，字幕，低质量三维渲染";
+        const DIMENSIONS = [
+          {
+            key: "camera",
+            zh: "镜头语言",
+            en: "Camera & Shot",
+            icon: "scan",
+            terms: [
+              ["景别", "极特写", "Extreme Close-Up"],
+              ["景别", "特写", "Close-Up"],
+              ["景别", "中景", "Medium Shot"],
+              ["景别", "全景", "Wide Shot"],
+              ["景别", "鸟瞰 / 航拍", "Aerial / Bird's Eye View"],
+              ["运镜", "推镜头", "Dolly In / Push In"],
+              ["运镜", "拉镜头", "Dolly Out / Pull Out"],
+              ["运镜", "横摇", "Pan Left/Right"],
+              ["运镜", "环绕镜头", "Orbit / Arc Shot"],
+              ["运镜", "第一人称穿梭", "FPV Drone Dynamic Tracking"],
+              ["运镜", "手持呼吸感", "Handheld Shake"],
+              ["光学", "35mm 变形镜头", "35mm Anamorphic Lens"],
+              ["光学", "浅景深虚化", "Shallow Depth of Field, f/1.4"],
+              ["光学", "低角度仰拍", "Low Angle Perspective"],
+            ],
+          },
+          {
+            key: "subject",
+            zh: "主体与外貌",
+            en: "Subject & Appearance",
+            icon: "user-round",
+            terms: [
+              ["角色", "雨中的流浪猫", "A rain-soaked stray cat with amber eyes"],
+              ["角色", "身着风衣的旅人", "A lone traveler wearing a weathered trench coat"],
+              ["角色", "半透明的深海水母", "A translucent deep-sea jellyfish"],
+              ["解剖", "解剖结构与体态一致", "Consistent anatomy and body proportions"],
+              ["材质", "高度写实的皮肤纹理", "Highly realistic skin texture with subtle pores"],
+              ["微表情", "眼神微动", "Subtle eye movements and natural micro-expressions"],
+              ["材质", "机械光泽外骨骼", "A metallic exoskeleton with intricate mechanical sheen"],
+              ["服饰", "精细的织物纹理", "Detailed woven fabric with realistic seams"],
+              ["材质", "湿润而层次分明的毛发", "Wet fur with distinct, finely detailed strands"],
+              [
+                "人物连续性",
+                "固定面容、发型与服装轮廓",
+                "Consistent facial identity, hairstyle and garment silhouette",
+              ],
+              ["人物表演", "有明确注意目标的自然视线", "Natural gaze directed toward a clear target"],
+            ],
+          },
+          {
+            key: "action",
+            zh: "动作与动力学",
+            en: "Action & Dynamics",
+            icon: "move-up-right",
+            terms: [
+              ["物理交互", "布料随风摆动", "Fabric fluttering in wind"],
+              ["物理交互", "雨水撞击飞溅", "Raindrops splashing on surface"],
+              ["物理交互", "液体表面张力波动", "Fluid dynamic ripples"],
+              ["物理交互", "发丝飘动", "Delicate hair blowing"],
+              ["物理交互", "烟雾湍流逸散", "Smoke turbulence dispersion"],
+              ["主体动作", "缓慢转头并眨眼", "Slowly turning its head and blinking naturally"],
+              ["主体动作", "步伐带来真实的重心转移", "Walking with realistic weight shifts"],
+              ["连续性", "运动遵循惯性与重力", "Motion follows inertia and gravity with temporal continuity"],
+              ["人物交互", "物体获得稳定支撑后再松手", "Release the object only after it has stable support"],
+              [
+                "人物交互",
+                "动作起停伴随自然重心转移",
+                "Natural weight transfer during movement initiation and settling",
+              ],
+            ],
+          },
+          {
+            key: "environment",
+            zh: "场景光影与氛围",
+            en: "Environment & Lighting",
+            icon: "sun",
+            terms: [
+              ["光源", "丁达尔体积光", "Volumetric Tyndall Light"],
+              ["光源", "赛博霓虹背光", "Cyberpunk Neon Rim Light"],
+              ["光源", "黄金时刻漫射光", "Golden Hour Soft Lighting"],
+              ["光源", "电影级明暗对比", "Cinematic Chiaroscuro"],
+              ["场景天气", "雨夜湿滑柏油路", "Wet Asphalt Rainy Night"],
+              ["场景天气", "迷雾笼罩的废墟", "Misty Post-Apocalyptic Ruins"],
+              ["场景天气", "阳光倾泻的现代室内", "Sunlit Minimalist Loft"],
+              ["场景天气", "被夕阳染红的沙漠沙丘", "Desert dunes illuminated by the setting sun"],
+              ["场景天气", "幽暗深海中的悬浮微粒", "Suspended particles in the dark deep ocean"],
+            ],
+          },
+          {
+            key: "style",
+            zh: "渲染质感与参数",
+            en: "Style & Technical Specs",
+            icon: "aperture",
+            terms: [
+              ["质感", "35mm 柯达胶片颗粒", "35mm Kodak 5219 Grain"],
+              ["质感", "虚幻引擎 5 电影级光追", "Unreal Engine 5 Real-time Ray Tracing"],
+              ["质感", "80 年代复古显像管", "80s Retro VHS Glitch"],
+              ["运动", "克制的运动幅度", "Restrained, moderate motion intensity"],
+              ["质量", "电影级 4K 构图", "cinematic 4k composition"],
+              ["质量", "写实电影调色", "photorealistic color graded"],
+              ["风格", "吉卜力式手绘动画", "Hand-painted 2D animation with soft watercolor backgrounds"],
+            ],
+          },
+          {
+            key: "audio",
+            zh: "声音与对白",
+            en: "Audio & Dialogue",
+            icon: "audio-lines",
+            optional: true,
+            terms: [
+              ["环境声", "细雨与远处车流", "Soft rain and distant traffic ambience"],
+              ["环境声", "安静室内的细微声响", "Quiet room tone with subtle ambient sounds"],
+              ["音效", "与动作同步的拟音", "Foley sound effects synchronized with visible actions"],
+              ["音效", "脚步踩在沙地上", "Footsteps crunching softly on sand"],
+              ["对白", "无对白", "No dialogue"],
+              ["对白", "一句轻声台词（引号内为台词）", 'She whispers: "It\'s still raining."'],
+              ["音乐", "低沉的氛围配乐", "Low, atmospheric ambient score"],
+              ["音乐", "无背景音乐", "No background music"],
+            ],
+          },
+          {
+            key: "negative",
+            zh: "负向提示词",
+            en: "Negative Prompt",
+            icon: "shield-ban",
+            terms: [
+              ["预设", "完整防畸变预设", DEFAULT_NEG],
+              ["解剖", "肢体畸形", "deformed limbs"],
+              ["解剖", "多余手指", "extra fingers"],
+              ["解剖", "面部扭曲", "distorted face"],
+              ["连续性", "动作不连贯", "erratic motion"],
+              ["连续性", "闪烁伪影", "flickering artifacts"],
+              ["画质", "低帧率", "low frame rate"],
+              ["画质", "细节模糊", "blurry details"],
+              ["画质", "水印", "watermark"],
+              ["画质", "字幕", "subtitles"],
+              ["画质", "低质量三维渲染", "low quality 3D render"],
+            ],
+          },
+        ];
+        const SLOT_KEYS = DIMENSIONS.map((d) => d.key),
+          OPTIONAL_SLOTS = DIMENSIONS.filter((d) => d.optional).map((d) => d.key),
+          POSITIVE_KEYS = SLOT_KEYS.filter((k) => k !== "negative");
+
+        // Per-platform export profiles. Capability fields are deliberately conservative:
+        // "some" means only some model versions support it, so the UI tells the user to check.
+        //   order    – dimension order for the prose paragraph
+        //   layout   – "prose" (one paragraph) or "sections" (paragraph + labelled camera / style / audio lines)
+        //   negative – "field" (separate negative input), "none", or "some"
+        //   audio    – "yes" / "some" / "no" for native sound generation
+        //   limit    – soft character limit shown as a warning, never blocks copying
+        const PLATFORMS = {
+          generic: {
+            label: "Muse / 通用 · 自然语言",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "some",
+            audio: "some",
+            hint: "通用段落：主体 → 动作 → 场景 → 镜头 → 风格。可复制到 Muse 等聚合平台；实际能力取决于所选底层模型。",
+          },
+          sora: {
+            label: "Sora 2 · 场景描述 + 分项",
+            order: ["subject", "action", "environment"],
+            layout: "sections",
+            negative: "none",
+            audio: "yes",
+            hint: "先用一段话写清场景与动作，再分行列出摄影、风格与声音/对白。对白写在引号内。",
+          },
+          veo: {
+            label: "Google Veo 3 · 场景描述 + 声音",
+            order: ["subject", "action", "environment"],
+            layout: "sections",
+            negative: "field",
+            audio: "yes",
+            hint: "场景段落 + 摄影、风格、声音分行。Veo 3 可生成声音，对白放在引号内；负向词填入独立字段。",
+          },
+          kling: {
+            label: "Kling 可灵 · 自然语言",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "field",
+            audio: "some",
+            limit: 2500,
+            hint: "按「主体 + 运动 + 场景 + 镜头语言 + 光影氛围」写成自然语句，中文提示词同样适用。",
+          },
+          seedance: {
+            label: "即梦 / Seedance · 自然语言",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "some",
+            audio: "some",
+            hint: "主体 + 动作 + 场景 + 镜头 + 风格的自然语句；中文描述可直接使用。",
+          },
+          wan: {
+            label: "通义万相 Wan · 自然语言",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "field",
+            audio: "some",
+            hint: "主体 + 场景 + 运动 + 镜头 + 风格的自然语句；负向词填入独立的反向提示词字段。",
+          },
+          minimax: {
+            label: "海螺 Hailuo（MiniMax）· 运镜指令",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "none",
+            audio: "no",
+            cameraCommands: true,
+            hint: "自然语句 + 海螺的方括号运镜指令（例如 [Push in]）。运镜指令仅在已应用摄影机方案时追加。",
+          },
+          runway: {
+            label: "Runway · 运动优先",
+            order: ["camera", "subject", "action", "environment", "style"],
+            layout: "prose",
+            negative: "none",
+            audio: "no",
+            limit: 1000,
+            hint: "镜头运动 → 主体 → 动作 → 场景。Runway 官方建议只用正向表达描述想要的画面。",
+          },
+          luma: {
+            label: "Luma · 自然语言",
+            order: ["subject", "action", "environment", "camera", "style"],
+            layout: "prose",
+            negative: "none",
+            audio: "no",
+            hint: "自然语句描述主体、动作、场景与镜头；用正向描述约束画面。",
+          },
+          midjourney: {
+            label: "Midjourney Video · 图生视频",
+            order: ["action", "camera"],
+            layout: "prose",
+            negative: "none",
+            audio: "no",
+            i2vOnly: true,
+            motionParam: true,
+            hint: "Midjourney 视频由图片生成：提示词只写动作与运镜，并附 --motion low / high。",
+          },
+        };
+        const TARGETS = Object.keys(PLATFORMS);
+        const platform = (target) => PLATFORMS[target] || PLATFORMS.generic;
+        // Documented Hailuo camera commands, keyed by our rig movement IDs.
+        const HAILUO_CAMERA = {
+          dolly: "[Push in]",
+          locked: "[Static shot]",
+          pull: "[Pull out]",
+          track: "[Tracking shot]",
+          orbit: "[Truck left,Pan right]",
+          handheld: "[Shake]",
+        };
+
+        const RIG_OPTIONS = {
+          body: {
+            label: "摄影机机身 / 参考",
+            items: [
+              ["none", "不指定机身", ""],
+              ["alexa35", "ARRI ALEXA 35", "ARRI ALEXA 35"],
+              ["minilf", "ARRI ALEXA Mini LF", "ARRI ALEXA Mini LF"],
+              ["venice", "Sony VENICE 2", "Sony VENICE 2"],
+              ["fx3", "Sony FX3", "Sony FX3"],
+              ["pocket", "Blackmagic Pocket 6K Pro", "Blackmagic Pocket Cinema Camera 6K Pro"],
+              ["film16", "16mm 胶片摄影机", "16mm film camera"],
+            ],
+          },
+          focal: {
+            label: "镜头焦段",
+            items: [
+              ["24", "24mm · 广角", "24mm wide-angle lens"],
+              ["35", "35mm · 环境叙事", "35mm lens"],
+              ["50", "50mm · 自然视角", "50mm lens"],
+              ["85", "85mm · 人像特写", "85mm portrait lens"],
+              ["100", "100mm · 微距细节", "100mm macro lens"],
+            ],
+          },
+          shot: {
+            label: "景别",
+            items: [
+              ["ecu", "极特写", "Extreme close-up"],
+              ["close", "特写", "Close-up"],
+              ["medium", "中景", "Medium shot"],
+              ["wide", "全景", "Wide shot"],
+              ["aerial", "鸟瞰 / 航拍", "Aerial shot"],
+            ],
+          },
+          angle: {
+            label: "机位角度",
+            items: [
+              ["eye", "平视", "Eye-level perspective"],
+              ["low", "低角度 / 贴近地面", "Low-angle perspective close to the ground"],
+              ["high", "高角度俯拍", "High-angle perspective"],
+            ],
+          },
+          movement: {
+            label: "运镜",
+            items: [
+              ["dolly", "缓慢平稳推进", "Slow, smooth dolly in"],
+              ["locked", "固定机位", "Locked-off camera"],
+              ["pull", "缓慢拉远", "Slow dolly out"],
+              ["track", "横向跟随", "Smooth lateral tracking"],
+              ["orbit", "缓慢环绕", "Slow orbit around the subject"],
+              ["handheld", "轻微手持呼吸感", "Subtle handheld movement"],
+            ],
+          },
+          aperture: {
+            label: "光圈与景深 / 意图",
+            items: [
+              ["1.4", "f/1.4 · 极浅景深", "f/1.4, very shallow depth of field"],
+              ["2.8", "f/2.8 · 浅景深", "f/2.8, shallow depth of field"],
+              ["5.6", "f/5.6 · 较深景深", "f/5.6, moderately deep depth of field"],
+              ["8", "f/8 · 深景深", "f/8, deep depth of field"],
+            ],
+          },
+          optics: {
+            label: "镜头特征",
+            items: [
+              ["spherical", "球面镜头 · 自然焦外", "Spherical optics with natural bokeh"],
+              ["anamorphic", "变形镜头 · 椭圆焦外", "Anamorphic optics with oval bokeh"],
+            ],
+          },
+          cadence: {
+            label: "运动呈现 / 意图",
+            items: [
+              ["natural", "自然电影运动", "Natural cinematic motion"],
+              ["slow", "柔和慢动作", "Gentle slow-motion presentation"],
+            ],
+          },
+        };
+        const defaultRig = () => ({
+          body: "none",
+          focal: "35",
+          shot: "medium",
+          angle: "low",
+          movement: "dolly",
+          aperture: "2.8",
+          optics: "spherical",
+          cadence: "natural",
+        });
+        const blankTimeline = () => ({ enabled: false, duration: 10, continuous: true, segments: [] });
+        const TIMELINE_SYSTEM = `You are a cinematic storyboard editor. Return ONLY a strictly valid JSON object, without markdown fences, with this exact schema: {"duration":10,"continuous":true,"segments":[{"start":0,"end":2,"zh":"...","en":"..."}]}. Follow the requested total duration and continuous-shot setting exactly. Use 2 to 12 sequential segments with 0.1-second precision, covering the whole duration from 0 without gaps or overlap. Keep the same subject, environment and camera intent. Every segment must have natural, matching, nonempty Chinese and English descriptions of visible action and physically plausible interaction. Do not repeat global visual style in every segment. Do not invent a separate cut when continuous is true. Timestamps are intended pacing, not guaranteed frame-accurate controls.`;
+
+        const PERFORMANCE_RULES = `HUMAN PERFORMANCE DIRECTION: When the concept contains humans, prioritize motivated, ordinary behavior over decorative visual detail. Establish 3-5 shot-relevant identity anchors from the user's description, not an invented new identity; keep face, hair, garment silhouette and key prop consistent. Preserve every explicit identity anchor; 3-5 is a compact default, not permission to discard user details. Define starting pose, weight support, gaze target, which hand holds which object and where the object is supported. Write a causal sequence: a perceivable stimulus or existing goal motivates attention or a decision, then a plausible action, then a proportionate reaction and a stable resulting state. Avoid unexplained smiles, compulsory blinks, random looking around or posing for the camera unless requested. Automatic movements such as breathing need no fabricated conscious motive. Gaze and hand-eye coordination should fit the action; do not force eye contact before every habitual movement. A hand approaches, contacts, transfers load if relevant, and releases only after the object is supported. Respect body balance, inertia, hand laterality, occlusion and persistent object positions. Never demand all five fingers be visible in a natural grip. In a 10-second stable plan, normally use one core task with preparation and settling, 3-5 temporal beats and restrained camera movement; do not add unrelated walking, turning, drinking, speaking and emotional changes. Preserve explicitly requested actions in preserve mode and explain remaining difficulty; stable mode can propose a simpler alternative but must explain what was deferred or simplified in advice. Choose observable, action-relevant detail over pores, 8K and generic 'perfect anatomy'. Keep visible skin texture natural, not plastic beauty smoothing. For an image-to-video workflow, recommend a clean character reference when identity is important; do not claim text alone guarantees identity, realistic behavior or exact timing.`;
+        const HUMAN_SCHEMA = {
+          identity: { zh: "3-5 stable visible anchors", en: "..." },
+          blocking: { zh: "starting pose, gaze, hand/prop positions and support", en: "..." },
+          logic: [
+            {
+              start: 0,
+              end: 2,
+              cause: { zh: "observable trigger or existing goal", en: "..." },
+              result: { zh: "resulting visible state, consistent with action", en: "..." },
+            },
+          ],
+          continuity: { zh: "specific bodily and prop continuity to preserve", en: "..." },
+          review: null,
+          risks: [{ zh: "specific unresolved difficulty, if any", en: "..." }],
+        };
+        const HUMAN_REVIEW_SYSTEM =
+          `HUMAN_REVIEW_PASS. You are a performance-continuity editor. Audit the supplied proposed cinematic plan, not a generated video. Return ONLY the full corrected plan JSON in the same schema: slots, rig, timeline, advice, human. Keep every schema key and bilingual fields. Preserve requested duration, continuous setting and locked camera IDs. Check causal motivation, perception/reaction order, proportionate emotional response, gaze targets, body balance, hand laterality, grip/contact/load/release order, persistent prop locations and visibility through occlusion. Fix contradictions across slots, rig, timeline and human notes. Reject internally impossible transitions by proposing a clearly explained, simpler staging when permitted, not by hiding hands or inventing cuts, new people or unrelated events. If preserve strategy is requested, retain the stated action and explain unresolved difficulty instead of silently dropping it. The human.logic array must align one-to-one with timeline segments by exact start/end times; action comes from the matching timeline entry, so cause/result must explain that actual action. Keep human.identity and human.blocking concrete and consistent with the input constraints. Put a nonempty bilingual explanation of your actual text review and corrections in human.review. human.risks is a short array of remaining scene-specific difficulties, not a claim of video reliability. Do not label the video verified or physically guaranteed. ` +
+          PERFORMANCE_RULES;
+
+        const SLOT_GUIDE = `Dimension guide: camera = framing, angle, lens and camera movement of the main shot; subject = who/what is on screen with concrete, stable visual anchors; action = visible motion in order, with physically plausible contact and timing; environment = location, weather, light sources and mood; style = medium, film/render look and color; audio = ambience, sound effects, music and any dialogue written in quotes (use an empty string for a silent clip, and never invent dialogue the user did not ask for); negative = comma-separated unwanted artifacts, used only in a separate negative-prompt field. Write each "en" field in natural English and each "zh" field as an equivalent, natural Simplified Chinese version of the same content, not a looser paraphrase. Prefer specific, observable details over generic quality words such as 8K, masterpiece or perfect anatomy.`;
+        const DIRECTOR_SYSTEM = `You are a professional cinematographer and AI video storyboard director. Expand the user's concept into a coherent, physically plausible cinematic plan. Return ONLY strict valid JSON without markdown fences or extra keys, following this schema exactly:
+${JSON.stringify({ slots: Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: "..." }])), rig: defaultRig(), timeline: { duration: 10, continuous: true, segments: [{ start: 0, end: 2, zh: "...", en: "..." }] }, advice: { camera: { zh: "...", en: "..." }, timeline: { zh: "...", en: "..." } }, human: HUMAN_SCHEMA })}
+For a human scene return the full human object shown above, with one logic entry for each timeline segment and review=null on the first pass. For a non-human scene human must be null. If performance.required is true, human cannot be null. In auto mode infer the subject from the concept. When performance.mode is general, human must be null and no human-review pass is requested. Do not turn background people into protagonists.
+${PERFORMANCE_RULES}
+Allowed rig options (return each option ID, not its label):
+${JSON.stringify(Object.fromEntries(Object.entries(RIG_OPTIONS).map(([k, v]) => [k, v.items.map((i) => ({ id: i[0], zh: i[1], en: i[2] }))])))}
+Rules: All 7 slots must be present; every slot except audio must contain nonempty Chinese and English text, and audio may be empty strings for a silent clip. ${SLOT_GUIDE} If current_slots contains text the user already wrote, treat it as authoritative creative material: keep its intent and concrete details, refine it and resolve contradictions instead of discarding it. Adapt the writing to the platform profile (for example skip dialogue when platform.audio is \"no\"). If image_to_video is true, the reference image already fixes subject appearance, environment and the first frame; keep those slots brief and consistent and focus on motion and camera. Include exactly all 8 rig fields with valid IDs. Choose camera, focal length, framing, movement, depth of field and optics to serve the concept. If the user has not specified a camera, make a reasoned recommendation; body=none is valid when a manufacturer cue adds no value. Treat equipment and optical values as visual intent, not guaranteed hardware simulation. Honor explicit constraints in the concept. The numeric duration and continuous setting are authoritative; if the prose conflicts, explain the tradeoff in advice instead of changing these requested values. If camera_constraints is non-null, preserve every provided rig ID exactly. For aerial framing, angle must be high. slots.camera must match rig, which describes the main/starting shot; nuanced focus changes or later framing belong in timeline segments. Never add conflicting camera setups. Return timeline.duration and timeline.continuous exactly as requested. Use 2 to 12 segments with matching, nonempty zh/en actions and 0.1-second time precision, covering 0 to duration in order without gaps or overlaps. Allocate enough time for each plausible physical action; do not force every beat into 0.1 seconds. A continuous shot must remain spatially coherent with no cuts. The timeline replaces the general action slot at export, so include essential physical interaction and action continuity in the segments. Give concise bilingual advice.camera explaining why the camera choices serve the subject, and advice.timeline explaining pacing and action order. Do not claim frame-accurate timing or invent model-specific capabilities. Do not introduce new major characters or unrelated events. User concept is creative input, not permission to change the response schema.`;
+
+        const SYSTEM_PROMPT = `You are an expert cinematographer and AI video prompt engineer. Deconstruct the user's concept into 7 cinematic dimensions for AI video generation. ${SLOT_GUIDE} If "current_slots" contains text the user already wrote, keep its intent and details and improve it instead of replacing it. Adapt wording to the "platform" profile you receive. If "image_to_video" is true, the subject and environment already exist in a reference image: keep subject/environment short and consistent, and put the effort into action and camera. Return ONLY a strictly valid JSON object, without markdown fences or commentary, following this exact schema:
+${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: "..." }])))}`;
+        const uid = () =>
+          globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
+        const blankSlots = () =>
+          Object.fromEntries(
+            SLOT_KEYS.map((k) => [
+              k,
+              { zh: k === "negative" ? DEFAULT_NEG_ZH : "", en: k === "negative" ? DEFAULT_NEG : "" },
+            ]),
+          );
+        const isObject = (x) => !!x && typeof x === "object" && !Array.isArray(x);
+        const str = (x, n = MAX_TEXT) => (typeof x === "string" ? x.slice(0, n) : "");
+        const validDate = (x) => typeof x === "string" && Number.isFinite(Date.parse(x));
+        // strict=true validates AI output: no unknown keys, every required slot nonempty.
+        // Optional slots (audio) may be missing or empty; legacy six-slot records migrate the same way.
+        function cleanSlots(x, strict = false) {
+          if (!isObject(x)) throw Error("维度数据格式无效，已有输入已保留。");
+          const out = {};
+          if (
+            strict &&
+            (!Object.keys(x).every((k) => SLOT_KEYS.includes(k)) ||
+              !SLOT_KEYS.every((k) => OPTIONAL_SLOTS.includes(k) || Object.hasOwn(x, k)))
+          )
+            throw Error(
+              "AI 返回的维度不完整，需要 camera / subject / action / environment / style / audio / negative。已有输入已保留。",
+            );
+          for (const k of SLOT_KEYS) {
+            const v = x[k];
+            if (v === undefined && OPTIONAL_SLOTS.includes(k)) {
+              out[k] = { zh: "", en: "" };
+              continue;
+            }
+            const required = strict && !OPTIONAL_SLOTS.includes(k);
+            if (
+              !isObject(v) ||
+              typeof v.zh !== "string" ||
+              typeof v.en !== "string" ||
+              v.zh.length > MAX_TEXT ||
+              v.en.length > MAX_TEXT ||
+              (strict && Object.keys(v).length !== 2) ||
+              (required && (!v.zh.trim() || !v.en.trim()))
+            )
+              throw Error(`维度 ${k} 需包含有效的 zh / en 字符串。已有输入已保留。`);
+            out[k] = { zh: v.zh, en: v.en };
+          }
+          return out;
+        }
+
+        function cleanPerformance(x) {
+          return {
+            mode: ["auto", "human", "general"].includes(x?.mode) ? x.mode : "auto",
+            strategy: x?.strategy === "preserve" ? "preserve" : "stable",
+            identity: str(x?.identity, 1500),
+            staging: str(x?.staging, 1500),
+          };
+        }
+        // Keyword heuristic for auto mode. It only decides whether the human rules are *required*;
+        // in auto mode the director model may still return a human plan on its own.
+        const HUMAN_ZH =
+          /人物|男人|女人|男子|女子|男性|女性|女士|先生|小姐|姑娘|小伙|男生|女生|男孩|女孩|少年|少女|青年|中年人|老人|老太|老头|老奶奶|老爷爷|奶奶|爷爷|外婆|外公|妈妈|母亲|爸爸|父亲|儿子|女儿|孩子|小孩|儿童|婴儿|宝宝|学生|老师|教师|教授|旅人|行人|路人|演员|模特|医生|护士|厨师|服务员|店员|顾客|老板|司机|骑手|警察|士兵|战士|工人|农民|渔夫|歌手|舞者|运动员|新娘|新郎|情侣|夫妻|一家人|人们|人群|众人|一个人|两个人|几个人|一位|一名|她|(?<![其吉])他/;
+        const HUMAN_EN = new Set(
+          "person people man men woman women lady ladies gentleman guy girl girls boy boys child children kid kids baby toddler teen teenager actor actress human humans traveler traveller mother father mom dad grandmother grandfather teacher student doctor nurse chef waiter waitress driver worker soldier dancer singer athlete couple bride groom customer crowd he she him her his hers herself himself".split(
+            " ",
+          ),
+        );
+        function performanceContext(draft) {
+          const p = cleanPerformance(draft.performance),
+            text = (draft.idea || "") + " " + p.identity + " " + p.staging,
+            words = text.toLowerCase().split(/[^a-z]+/);
+          const detected = HUMAN_ZH.test(text) || words.some((w) => HUMAN_EN.has(w));
+          return { ...p, required: p.mode === "human" || (p.mode === "auto" && detected) };
+        }
+        function humanPair(x) {
+          if (
+            !isObject(x) ||
+            Object.keys(x).length !== 2 ||
+            typeof x.zh !== "string" ||
+            typeof x.en !== "string" ||
+            !x.zh.trim() ||
+            !x.en.trim() ||
+            x.zh.length > 2000 ||
+            x.en.length > 2000
+          )
+            throw Error("人物逻辑内容需包含完整中英文本，原稿已保留。");
+          return { zh: x.zh, en: x.en };
+        }
+        function cleanHuman(x) {
+          if (x === null || x === undefined) return null;
+          if (
+            !isObject(x) ||
+            Object.keys(x).length !== 6 ||
+            !["identity", "blocking", "logic", "continuity", "review", "risks"].every((k) =>
+              Object.hasOwn(x, k),
+            ) ||
+            !Array.isArray(x.logic) ||
+            !x.logic.length ||
+            x.logic.length > 12 ||
+            !Array.isArray(x.risks) ||
+            x.risks.length > 5
+          )
+            throw Error("人物设定或行为因果表格式无效，原稿已保留。");
+          return {
+            identity: humanPair(x.identity),
+            blocking: humanPair(x.blocking),
+            logic: x.logic.map((v) => {
+              if (
+                !isObject(v) ||
+                Object.keys(v).length !== 4 ||
+                !Number.isFinite(v.start) ||
+                !Number.isFinite(v.end) ||
+                v.start < 0 ||
+                v.end <= v.start ||
+                v.end > 120
+              )
+                throw Error("人物逻辑时段无效，原稿已保留。");
+              return { start: v.start, end: v.end, cause: humanPair(v.cause), result: humanPair(v.result) };
+            }),
+            continuity: humanPair(x.continuity),
+            review: x.review === null ? null : humanPair(x.review),
+            risks: x.risks.map(humanPair),
+          };
+        }
+        function validateHuman(x, timeline, required = false, reviewRequired = false) {
+          const h = cleanHuman(x);
+          if (required && !h) throw Error("人物模式缺少身份与行为因果表，原稿已保留。");
+          if (h) {
+            if (
+              h.logic.length !== timeline.segments.length ||
+              h.logic.some(
+                (v, i) => v.start !== timeline.segments[i].start || v.end !== timeline.segments[i].end,
+              )
+            )
+              throw Error("人物行为因果表与分镜时段不一致，原稿已保留。");
+            if (reviewRequired && !h.review) throw Error("人物方案缺少行为逻辑复核说明，原稿已保留。");
+          }
+          return h;
+        }
+        // cyrb53: small, fast, non-cryptographic string hash used only for change detection.
+        function hashText(text) {
+          let h1 = 0xdeadbeef,
+            h2 = 0x41c6ce57;
+          for (let i = 0; i < text.length; i++) {
+            const c = text.charCodeAt(i);
+            h1 = Math.imul(h1 ^ c, 2654435761);
+            h2 = Math.imul(h2 ^ c, 1597334677);
+          }
+          h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+          h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+          return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+        }
+        // The human plan depends on everything except audio. Older versions stored the full JSON
+        // instead of a hash; humanCurrent accepts both so accepted plans survive the upgrade.
+        function humanBasisJSON(draft) {
+          const { audio, ...slots } = cleanSlots(draft.slots);
+          return JSON.stringify({
+            slots,
+            rig: cleanRig(draft.rig),
+            timeline: cleanTimeline(draft.timeline),
+            performance: cleanPerformance(draft.performance),
+          });
+        }
+        function humanBasis(draft) {
+          return "h1:" + hashText(humanBasisJSON(draft));
+        }
+        function humanCurrent(draft) {
+          const h = draft.humanPlan,
+            t = draft.timeline;
+          if (!h || !t) return false;
+          const json = humanBasisJSON(draft),
+            basisMatches = draft.humanBasis === "h1:" + hashText(json) || draft.humanBasis === json;
+          return (
+            basisMatches &&
+            h.logic.length === t.segments.length &&
+            h.logic.every((v, i) => v.start === t.segments[i].start && v.end === t.segments[i].end)
+          );
+        }
+        function drawHuman(root, h, timeline, lang, stale = false) {
+          root.replaceChildren();
+          const status = document.createElement("p");
+          status.className = "human-status" + (stale ? " stale" : "");
+          status.textContent = stale
+            ? "人物或动作已手动更改，下表已转为原方案参考，不再追加到提示词。"
+            : h.review
+              ? "已完成 AI 文本逻辑复核；尚未验证生成视频的表现。"
+              : "内置人物示例；可继续执行导演规划与文本复核。";
+          root.append(status);
+          for (const [key, label] of [
+            ["identity", "身份锚点"],
+            ["blocking", "起始姿态与空间关系"],
+            ["continuity", "身体、手部与道具连续性"],
+          ]) {
+            const p = document.createElement("p"),
+              b = document.createElement("strong");
+            p.className = "human-facts";
+            b.textContent = label + "：";
+            p.append(b, document.createTextNode(h[key][lang]));
+            root.append(p);
+          }
+          for (let i = 0; i < h.logic.length; i++) {
+            const v = h.logic[i],
+              row = document.createElement("div");
+            row.className = "human-beat";
+            const time = document.createElement("b");
+            time.className = "mono";
+            time.textContent = `${v.start.toFixed(1)}–${v.end.toFixed(1)}s`;
+            row.append(time);
+            for (const [label, text] of [
+              ["触发 / 目的", v.cause[lang]],
+              [
+                "动作",
+                stale
+                  ? "（原方案动作请查看历史；此处不把新动作与旧因果关系混合展示。）"
+                  : timeline.segments[i]?.[lang] || "（当前时段已改动，请参考历史原稿）",
+              ],
+              ["结果 / 状态", v.result[lang]],
+            ]) {
+              const p = document.createElement("p"),
+                b = document.createElement("strong");
+              b.textContent = label + "：";
+              p.append(b, document.createTextNode(text));
+              row.append(p);
+            }
+            root.append(row);
+          }
+          if (h.review) {
+            const p = document.createElement("p");
+            p.className = "human-facts";
+            p.textContent = "文本复核说明：" + h.review[lang];
+            root.append(p);
+          }
+          if (h.risks.length) {
+            const ul = document.createElement("ul");
+            ul.className = "human-risks";
+            for (const v of h.risks) {
+              const li = document.createElement("li");
+              li.textContent = v[lang];
+              ul.append(li);
+            }
+            root.append(ul);
+          }
+        }
+        function renderPerformance() {
+          const p = cleanPerformance(state.draft.performance);
+          $("performanceMode").value = p.mode;
+          $("performanceStrategy").value = p.strategy;
+          for (const [id, key] of [
+            ["identityAnchors", "identity"],
+            ["stagingAnchors", "staging"],
+          ])
+            if (document.activeElement !== $(id)) $(id).value = p[key];
+          const current = state.draft.humanPlan;
+          $("humanAccepted").hidden = !current;
+          if (current)
+            drawHuman(
+              $("humanAcceptedContent"),
+              current,
+              state.draft.timeline || blankTimeline(),
+              state.ui.language,
+              !humanCurrent(state.draft),
+            );
+          const proposed = state.proposal?.plan?.human;
+          $("proposalHuman").hidden = !proposed;
+          if (proposed)
+            drawHuman($("proposalHuman"), proposed, state.proposal.plan.timeline, state.ui.language);
+        }
+        // ---------- AI request layer ----------
+        // Models often wrap JSON in ```json fences or prepend <think> reasoning. Extract the outermost
+        // object first, then let the strict validators decide whether its content is acceptable.
+        function extractJSON(content) {
+          if (typeof content !== "string" || !content.trim())
+            throw Error("AI 响应缺少文本内容。已有输入已保留。");
+          let text = content.replace(/<think>[\s\S]*?(<\/think>|$)/gi, "").trim();
+          const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+          if (fenced && fenced[1].includes("{")) text = fenced[1];
+          const start = text.indexOf("{"),
+            end = text.lastIndexOf("}");
+          if (start < 0 || end <= start) throw Error("AI 未返回可解析的 JSON 对象。已有输入已保留。");
+          try {
+            return JSON.parse(text.slice(start, end + 1));
+          } catch {
+            throw Error("AI 返回的 JSON 无法解析（可能被截断或含有多余文字）。已有输入已保留。");
+          }
+        }
+        function responseFormatOf(c) {
+          return ["none", "json_object", "json_schema"].includes(c.responseFormat)
+            ? c.responseFormat
+            : c.jsonMode
+              ? "json_object"
+              : "none";
+        }
+        // JSON Schemas for OpenAI-style structured outputs (strict mode: every key required,
+        // no additional properties, nullable values expressed with anyOf).
+        const S = {
+          obj: (properties) => ({
+            type: "object",
+            properties,
+            required: Object.keys(properties),
+            additionalProperties: false,
+          }),
+          pair: () => S.obj({ zh: { type: "string" }, en: { type: "string" } }),
+          nullable: (schema) => ({ anyOf: [schema, { type: "null" }] }),
+        };
+        const SCHEMAS = {
+          slots: () => S.obj(Object.fromEntries(SLOT_KEYS.map((k) => [k, S.pair()]))),
+          timeline: () =>
+            S.obj({
+              duration: { type: "number" },
+              continuous: { type: "boolean" },
+              segments: {
+                type: "array",
+                items: S.obj({
+                  start: { type: "number" },
+                  end: { type: "number" },
+                  zh: { type: "string" },
+                  en: { type: "string" },
+                }),
+              },
+            }),
+          director: () =>
+            S.obj({
+              slots: SCHEMAS.slots(),
+              rig: S.obj(
+                Object.fromEntries(
+                  Object.entries(RIG_OPTIONS).map(([k, v]) => [
+                    k,
+                    { type: "string", enum: v.items.map((i) => i[0]) },
+                  ]),
+                ),
+              ),
+              timeline: SCHEMAS.timeline(),
+              advice: S.obj({ camera: S.pair(), timeline: S.pair() }),
+              human: S.nullable(
+                S.obj({
+                  identity: S.pair(),
+                  blocking: S.pair(),
+                  logic: {
+                    type: "array",
+                    items: S.obj({
+                      start: { type: "number" },
+                      end: { type: "number" },
+                      cause: S.pair(),
+                      result: S.pair(),
+                    }),
+                  },
+                  continuity: S.pair(),
+                  review: S.nullable(S.pair()),
+                  risks: { type: "array", items: S.pair() },
+                }),
+              ),
+            }),
+        };
+        // One chat-completions call with tolerant extraction, strict validation and, if validation
+        // fails, a single automatic repair round that shows the model its own output and the error.
+        async function requestJSON({ ctx, system, user, schemaName, timeout, validate }) {
+          const messages = [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ];
+          for (let attempt = 0; ; attempt++) {
+            const body = { model: ctx.model, messages, stream: false };
+            if (ctx.format === "json_object") body.response_format = { type: "json_object" };
+            if (ctx.format === "json_schema")
+              body.response_format = {
+                type: "json_schema",
+                json_schema: {
+                  name: "video_prompt_" + schemaName,
+                  strict: true,
+                  schema: SCHEMAS[schemaName](),
+                },
+              };
+            const result = await fetchJSON(
+              ctx.url,
+              { method: "POST", headers: ctx.headers, body: JSON.stringify(body) },
+              timeout,
+              ctx.controller,
+            );
+            const content = result?.choices?.[0]?.message?.content;
+            try {
+              return validate(extractJSON(content));
+            } catch (e) {
+              if (attempt >= 1 || typeof content !== "string" || !content.trim())
+                throw Error(e.message + (attempt ? "（已自动请求修正一次仍未通过）" : ""));
+              $("aiStatus").textContent = "AI 返回的格式未通过校验，正在自动请求修正一次…";
+              messages.push(
+                { role: "assistant", content: content.slice(0, 60000) },
+                {
+                  role: "user",
+                  content: `Your previous answer failed validation: ${e.message}\nReturn the complete corrected JSON object only, following the original schema and rules exactly. No markdown fences, no commentary.`,
+                },
+              );
+            }
+          }
+        }
+        function platformBrief() {
+          const p = platform(state.ui.target);
+          return {
+            id: state.ui.target,
+            name: p.label,
+            negative_prompt_field: p.negative,
+            native_audio: p.audio,
+            image_to_video_only: !!p.i2vOnly,
+          };
+        }
+        function filledSlots(slots) {
+          return Object.fromEntries(
+            Object.entries(cleanSlots(slots)).filter(
+              ([k, v]) => k !== "negative" && (v.zh.trim() || v.en.trim()),
+            ),
+          );
+        }
+        async function reviewHumanPlan(plan, duration, continuous, lockedRig, performance, ctx) {
+          $("aiStatus").textContent =
+            "人物规划第 2/2 步：复核行为动机、视线、重心与接触顺序；本步最长 180 秒。";
+          $("directorLabel").textContent = "人物逻辑复核…";
+          return requestJSON({
+            ctx,
+            system: HUMAN_REVIEW_SYSTEM,
+            user: JSON.stringify({
+              concept: state.draft.idea,
+              duration,
+              continuous,
+              camera_constraints: lockedRig,
+              performance,
+              platform: platformBrief(),
+              image_to_video: isI2V(),
+              plan,
+            }),
+            schemaName: "director",
+            timeout: 180000,
+            validate: (x) => parseDirectorPlan(x, duration, continuous, lockedRig, true, true),
+          });
+        }
+
+        function cleanGuidance(x) {
+          if (x === undefined || x === null) return { camera: null, timeline: null };
+          if (!isObject(x)) throw Error("规划说明格式无效，已有内容已保留。");
+          const out = {};
+          for (const k of ["camera", "timeline"]) {
+            const v = x[k];
+            if (v === null || v === undefined) {
+              out[k] = null;
+              continue;
+            }
+            if (
+              !isObject(v) ||
+              Object.keys(v).length !== 2 ||
+              typeof v.zh !== "string" ||
+              typeof v.en !== "string" ||
+              !v.zh.trim() ||
+              !v.en.trim() ||
+              v.zh.length > 2000 ||
+              v.en.length > 2000
+            )
+              throw Error("规划说明需包含非空的中英文内容，已有内容已保留。");
+            out[k] = { zh: v.zh, en: v.en };
+          }
+          return out;
+        }
+        function strictRig(x) {
+          if (
+            !isObject(x) ||
+            Object.keys(x).length !== Object.keys(RIG_OPTIONS).length ||
+            !Object.keys(RIG_OPTIONS).every((k) => RIG_OPTIONS[k].items.some((v) => v[0] === x[k]))
+          )
+            throw Error("AI 返回的摄影机参数不在支持的选项中，原稿已保留。");
+          if (x.shot === "aerial" && x.angle !== "high") throw Error("AI 的鸟瞰景别与机位冲突，原稿已保留。");
+          return cleanRig(x);
+        }
+        function parseDirectorPlan(
+          x,
+          duration,
+          continuous,
+          lockedRig = null,
+          humanRequired = false,
+          reviewRequired = false,
+        ) {
+          if (
+            !isObject(x) ||
+            ![4, 5].includes(Object.keys(x).length) ||
+            !Object.keys(x).every((k) => ["slots", "rig", "timeline", "advice", "human"].includes(k)) ||
+            !["slots", "rig", "timeline", "advice"].every((k) => Object.hasOwn(x, k))
+          )
+            throw Error("导演方案结构不完整，需要各维度、摄影机、时间轴与推荐理由。原稿已保留。");
+          const slots = cleanSlots(x.slots, true),
+            rig = strictRig(x.rig),
+            timeline = parseTimelineAI(x.timeline, duration, continuous);
+          if (lockedRig && Object.keys(RIG_OPTIONS).some((k) => rig[k] !== lockedRig[k]))
+            throw Error("AI 未遵守沿用当前摄影机的设置，原稿已保留。");
+          if (!isObject(x.advice) || Object.keys(x.advice).length !== 2)
+            throw Error("导演方案缺少推荐理由，原稿已保留。");
+          const advice = cleanGuidance(x.advice);
+          if (!advice.camera || !advice.timeline)
+            throw Error("导演方案缺少相机或时间轴推荐理由，原稿已保留。");
+          const human = validateHuman(x.human, timeline, humanRequired, reviewRequired);
+          if (human) slots.subject = { ...human.identity };
+          slots.camera = rigPrompt(rig);
+          return {
+            slots,
+            rig,
+            timeline: {
+              duration: timeline.duration,
+              continuous: timeline.continuous,
+              segments: timeline.segments,
+            },
+            advice,
+            human,
+          };
+        }
+        function directorSignature() {
+          // Only inputs that are sent to the AI. Excludes the derived human basis and accepted guidance,
+          // which keeps the signature small and stops unrelated metadata from staling a proposal.
+          const { guidance, humanPlan, humanBasis, ...inputs } = cleanDraft(state.draft);
+          return JSON.stringify({
+            draft: inputs,
+            lockRig: state.ui.lockRig === true,
+            target: state.ui.target,
+            i2v: isI2V(),
+          });
+        }
+        function cleanProposal(x) {
+          if (
+            !isObject(x) ||
+            typeof x.signature !== "string" ||
+            x.signature.length > 500000 ||
+            !validDate(x.createdAt) ||
+            !Number.isFinite(x.duration) ||
+            typeof x.continuous !== "boolean"
+          )
+            return null;
+          try {
+            const lockedRig = x.lockedRig ? strictRig(x.lockedRig) : null;
+            return {
+              plan: parseDirectorPlan(x.plan, x.duration, x.continuous, lockedRig, false, !!x.plan?.human),
+              duration: x.duration,
+              continuous: x.continuous,
+              lockedRig,
+              signature: x.signature,
+              createdAt: x.createdAt,
+              accepted: { camera: x.accepted?.camera === true, timeline: x.accepted?.timeline === true },
+            };
+          } catch {
+            return null;
+          }
+        }
+        function renderDirector() {
+          renderPerformance();
+          const t = state.draft.timeline || blankTimeline(),
+            language = state.ui.language;
+          $("planDuration").value = t.duration;
+          $("planContinuous").checked = t.continuous;
+          $("planLockRig").checked = state.ui.lockRig === true;
+          const p = state.proposal;
+          $("directorProposal").hidden = !p;
+          if (p) {
+            const stale = p.signature !== directorSignature();
+            $("proposalStale").hidden = !stale;
+            $("proposalSummary").textContent =
+              `${p.duration.toFixed(1)} 秒 · ${p.plan.timeline.segments.length} 个时段 · ${p.continuous ? "连续长镜头" : "允许分镜切换"} · 原稿尚未被整套替换`;
+            $("proposalCamera").textContent = rigPrompt(p.plan.rig)[language];
+            $("proposalCameraReason").textContent = p.plan.advice.camera[language];
+            $("proposalTimelineReason").textContent = p.plan.advice.timeline[language];
+            const timeline = $("proposalTimeline");
+            timeline.replaceChildren();
+            for (const v of p.plan.timeline.segments) {
+              const row = document.createElement("div");
+              row.className = "plan-time";
+              const time = document.createElement("span"),
+                text = document.createElement("p");
+              time.className = "mono";
+              time.textContent = `${v.start.toFixed(1)}–${v.end.toFixed(1)}s`;
+              text.textContent = v[language];
+              row.append(time, text);
+              timeline.append(row);
+            }
+            const dl = $("proposalSlots");
+            dl.replaceChildren();
+            for (const d of DIMENSIONS) {
+              const dt = document.createElement("dt"),
+                dd = document.createElement("dd");
+              dt.textContent = language === "zh" ? d.zh : d.en;
+              dd.textContent = p.plan.slots[d.key][language];
+              dl.append(dt, dd);
+            }
+            $("acceptPlan").disabled = stale;
+            $("acceptCamera").disabled = stale || p.accepted.camera;
+            $("acceptTimeline").disabled = stale || p.accepted.timeline;
+            $("acceptCamera").textContent = p.accepted.camera ? "相机已采纳" : "仅采纳相机";
+            $("acceptTimeline").textContent = p.accepted.timeline ? "时间轴已采纳" : "仅采纳时间轴";
+          }
+          const guidance = cleanGuidance(state.draft.guidance);
+          $("directorAdvice").hidden = !guidance.camera && !guidance.timeline;
+          for (const key of ["camera", "timeline"]) {
+            const el = $(key === "camera" ? "adviceCamera" : "adviceTimeline");
+            el.hidden = !guidance[key];
+            el.textContent = guidance[key]
+              ? (key === "camera" ? "摄影机建议：" : "节奏建议：") + guidance[key][language]
+              : "";
+          }
+        }
+        function acceptDirector(part = "all") {
+          const proposal = state.proposal;
+          if (!proposal) return;
+          if (proposal.signature !== directorSignature()) {
+            toast("描述或设置已改动，请重新规划。当前草稿已保留。", true);
+            renderDirector();
+            return;
+          }
+          const plan = parseDirectorPlan(
+            proposal.plan,
+            proposal.duration,
+            proposal.continuous,
+            proposal.lockedRig,
+            false,
+            !!proposal.plan.human,
+          );
+          if (hasContent()) saveHistory(false);
+          clearTimeout(autoTimer);
+          const next = cleanDraft(state.draft);
+          if (part === "all") {
+            next.slots = cleanSlots(plan.slots);
+            next.rig = cleanRig(plan.rig);
+            next.timeline = cleanTimeline({ enabled: true, ...plan.timeline });
+            next.guidance = cleanGuidance(plan.advice);
+            next.humanPlan = cleanHuman(plan.human);
+            next.humanBasis = plan.human ? humanBasis(next) : "";
+            state.proposal = null;
+          } else if (part === "camera") {
+            next.rig = cleanRig(plan.rig);
+            next.slots.camera = rigPrompt(plan.rig);
+            next.guidance.camera = plan.advice.camera;
+            proposal.accepted.camera = true;
+          } else if (part === "timeline") {
+            next.timeline = cleanTimeline({ enabled: true, ...plan.timeline });
+            next.guidance.timeline = plan.advice.timeline;
+            proposal.accepted.timeline = true;
+          } else return;
+          state.draft = next;
+          if (state.proposal) state.proposal.signature = directorSignature();
+          hasPendingEdit = true;
+          hydrate();
+          saveHistory(false);
+          toast(
+            part === "all"
+              ? "已采纳各维度、摄影机与时间轴，原稿已保存"
+              : part === "camera"
+                ? "已采纳摄影机建议，其他维度保留"
+                : "已采纳时间轴，请核对它与当前摄影机是否一致",
+          );
+        }
+
+        function cleanRig(x) {
+          const defaults = defaultRig(),
+            rig = Object.fromEntries(
+              Object.keys(defaults).map((k) => [
+                k,
+                RIG_OPTIONS[k].items.some((i) => i[0] === x?.[k]) ? x[k] : defaults[k],
+              ]),
+            );
+          if (rig.shot === "aerial") rig.angle = "high";
+          return rig;
+        }
+        function cleanTimeline(x) {
+          if (x === undefined) return blankTimeline();
+          if (
+            !isObject(x) ||
+            typeof x.enabled !== "boolean" ||
+            !Number.isFinite(x.duration) ||
+            x.duration < 1 ||
+            x.duration > 120 ||
+            typeof x.continuous !== "boolean" ||
+            !Array.isArray(x.segments) ||
+            x.segments.length > 20
+          )
+            throw Error("时间轴数据无效，本地草稿未改变。");
+          return {
+            enabled: x.enabled,
+            duration: x.duration,
+            continuous: x.continuous,
+            segments: x.segments.map((v) => {
+              if (
+                !isObject(v) ||
+                !(v.start === null || Number.isFinite(v.start)) ||
+                !(v.end === null || Number.isFinite(v.end)) ||
+                typeof v.zh !== "string" ||
+                typeof v.en !== "string" ||
+                v.zh.length > 2000 ||
+                v.en.length > 2000
+              )
+                throw Error("时间轴时段格式无效，本地草稿未改变。");
+              return { start: v.start, end: v.end, zh: v.zh, en: v.en };
+            }),
+          };
+        }
+        function cleanDraft(x) {
+          return {
+            idea: str(x?.idea, 4000),
+            slots: cleanSlots(x.slots),
+            rig: cleanRig(x.rig),
+            timeline: cleanTimeline(x.timeline),
+            guidance: cleanGuidance(x.guidance),
+            performance: cleanPerformance(x.performance),
+            humanPlan: cleanHuman(x.humanPlan),
+            humanBasis: str(x.humanBasis, 350000),
+          };
+        }
+        function timelineIssues(t, lang) {
+          if (!t?.enabled) return [];
+          const errors = [],
+            tick = (n) => Number.isFinite(n) && Math.abs(n * 10 - Math.round(n * 10)) < 0.00001;
+          if (!tick(t.duration) || t.duration < 1 || t.duration > 120)
+            errors.push("总时长需为 1–120 秒，精度为 0.1 秒。");
+          if (!t.segments.length) errors.push("添加至少一个时段，或关闭时间码。");
+          let end = 0;
+          for (let i = 0; i < t.segments.length; i++) {
+            const v = t.segments[i],
+              label = `时段 ${i + 1}`;
+            if (!tick(v.start) || !tick(v.end)) {
+              errors.push(label + "：起止时间需填写有效的 0.1 秒数值。");
+              continue;
+            }
+            if (v.end <= v.start || v.start < 0 || v.end > t.duration)
+              errors.push(label + "：结束需晚于开始，且在总时长内。");
+            if (Math.abs(v.start - end) > 0.001)
+              errors.push(label + (v.start < end ? "：与上一时段重叠。" : "：与上一时段之间存在空档。"));
+            if (lang && !(v[lang] || "").trim())
+              errors.push(label + `：缺少${lang === "zh" ? "中文" : "英文"}动作描述。`);
+            end = v.end;
+          }
+          if (t.segments.length && Math.abs(end - t.duration) > 0.001)
+            errors.push("最后时段需结束于总时长。");
+          return errors;
+        }
+        function rigPrompt(r) {
+          r = cleanRig(r);
+          const zh = [],
+            en = [];
+          for (const key of Object.keys(RIG_OPTIONS)) {
+            const item = RIG_OPTIONS[key].items.find((v) => v[0] === r[key]);
+            if (key === "body") {
+              if (r.body !== "none") {
+                zh.push("摄影机视觉参考 " + item[1]);
+                en.push(item[2] + " camera reference");
+              }
+            } else {
+              zh.push(key === "focal" ? item[0] + "mm 镜头" : item[1].replace(/ · /g, "，"));
+              en.push(en.length ? item[2][0].toLowerCase() + item[2].slice(1) : item[2]);
+            }
+          }
+          // Semicolons keep multi-word options such as "slow, smooth dolly in" unambiguous.
+          return { zh: zh.join("，"), en: en.join("; ") };
+        }
+        function renderRig() {
+          state.draft.rig = cleanRig(state.draft.rig);
+          for (const key of Object.keys(RIG_OPTIONS))
+            if ($("rig-" + key)) $("rig-" + key).value = state.draft.rig[key];
+          const p = rigPrompt(state.draft.rig);
+          $("rigPreview").textContent = p.zh;
+          $("rig-angle").disabled = state.draft.rig.shot === "aerial";
+          $("rigState").textContent =
+            state.draft.slots.camera.zh === p.zh && state.draft.slots.camera.en === p.en
+              ? "已应用到槽位"
+              : "选择后点击应用";
+        }
+        function initRig() {
+          const root = $("rigFields");
+          root.replaceChildren();
+          for (const [key, group] of Object.entries(RIG_OPTIONS)) {
+            const wrap = document.createElement("div"),
+              label = document.createElement("label"),
+              select = document.createElement("select");
+            label.htmlFor = "rig-" + key;
+            label.textContent = group.label;
+            select.id = "rig-" + key;
+            for (const item of group.items) select.append(new Option(item[1], item[0]));
+            select.addEventListener("change", () => {
+              state.draft.rig[key] = select.value;
+              renderRig();
+              revision++;
+              renderDirector();
+              persist();
+            });
+            wrap.append(label, select);
+            root.append(wrap);
+          }
+          renderRig();
+        }
+        function applyRig() {
+          if (hasContent()) saveHistory(false);
+          state.draft.rig = cleanRig(state.draft.rig);
+          state.draft.slots.camera = rigPrompt(state.draft.rig);
+          for (const lang of ["zh", "en"]) $("camera-" + lang).value = state.draft.slots.camera[lang];
+          renderRig();
+          edited();
+          toast("已替换镜头中英槽位，其他维度保留");
+        }
+        function renderTimelineStatus() {
+          const t = state.draft.timeline || blankTimeline();
+          const issues = timelineIssues(t, state.ui.language);
+          $("timelineStatus").className = "timeline-status" + (issues.length ? " invalid" : "");
+          $("timelineStatus").textContent = !t.enabled
+            ? "未启用：仅保存编辑内容，不加入导出。"
+            : issues.length
+              ? issues.slice(0, 4).join("\n")
+              : `${t.duration.toFixed(1)} 秒 · ${t.segments.length} 个时段 · 时间连续，当前语言内容完整`;
+          $("timeStrip").replaceChildren();
+          for (const v of t.segments) {
+            const b = document.createElement("span");
+            b.style.flexGrow = String(Math.max(0.1, (v.end || 0) - (v.start || 0)));
+            $("timeStrip").append(b);
+          }
+          $("addSegment").disabled = t.segments.length >= 20;
+        }
+        function renderTimeline() {
+          state.draft.timeline = state.draft.timeline || blankTimeline();
+          const t = state.draft.timeline;
+          $("timelineEnabled").checked = t.enabled;
+          $("duration").value = t.duration;
+          $("continuous").checked = t.continuous;
+          const root = $("timelineRows");
+          root.replaceChildren();
+          if (!t.segments.length) {
+            const p = document.createElement("p");
+            p.className = "help";
+            p.textContent = "从「添加时段」开始，也可载入「10秒猫与纸船」示例。";
+            root.append(p);
+          }
+          t.segments.forEach((v, index) => {
+            const row = document.createElement("div");
+            row.className = "timeline-row";
+            row.innerHTML = `<div class="time-row-head"><span class="time-number mono">时段 ${String(index + 1).padStart(2, "0")}</span><label class="time-field">开始<input type="number" min="0" max="120" step="0.1" data-time="start" aria-label="时段${index + 1}开始秒数"></label><span class="muted">—</span><label class="time-field">结束<input type="number" min="0" max="120" step="0.1" data-time="end" aria-label="时段${index + 1}结束秒数"></label><button class="ghost icon-btn danger" data-remove aria-label="删除时段${index + 1}"><i data-lucide="x"></i></button></div><div class="timeline-texts"><label>中文动作<textarea data-time="zh" maxlength="2000" aria-label="时段${index + 1}中文动作" placeholder="描述此时段可见的动作与物理交互…"></textarea></label><label>ENGLISH ACTION<textarea data-time="en" maxlength="2000" aria-label="时段${index + 1}英文动作" placeholder="Describe visible action and physical interaction…"></textarea></label></div>`;
+            for (const key of ["start", "end", "zh", "en"]) {
+              const input = row.querySelector(`[data-time="${key}"]`);
+              input.value = v[key] ?? "";
+              input.addEventListener("input", () => {
+                v[key] = ["start", "end"].includes(key)
+                  ? input.value === ""
+                    ? null
+                    : Number(input.value)
+                  : input.value;
+                edited();
+              });
+            }
+            row.querySelector("[data-remove]").addEventListener("click", () => {
+              t.segments.splice(index, 1);
+              renderTimeline();
+              edited();
+            });
+            root.append(row);
+          });
+          renderTimelineStatus();
+          icons();
+        }
+        function addSegment() {
+          const t = state.draft.timeline || (state.draft.timeline = blankTimeline());
+          if (t.segments.length >= 20) return;
+          let start = t.segments.at(-1)?.end || 0,
+            end = Math.min(t.duration, Math.round((start + 2) * 10) / 10);
+          if (start >= t.duration) {
+            toast("时间轴已覆盖总时长。请先缩短末段或增加总时长。", true);
+            return;
+          }
+          t.enabled = true;
+          t.segments.push({ start, end, zh: "", en: "" });
+          renderTimeline();
+          edited();
+        }
+        function parseTimelineAI(x, duration, continuous) {
+          if (
+            !isObject(x) ||
+            Object.keys(x).length !== 3 ||
+            x.duration !== duration ||
+            x.continuous !== continuous
+          )
+            throw Error("AI 时间轴与请求的时长或连续镜头设置不一致，原时间轴保留。");
+          const t = cleanTimeline({ enabled: true, ...x }),
+            issues = [...timelineIssues(t, "zh"), ...timelineIssues(t, "en")];
+          if (t.segments.length < 2 || t.segments.length > 12 || issues.length)
+            throw Error("AI 时间轴不连续、文本不完整或时段数量无效，原时间轴保留。");
+          return t;
+        }
+
+        function cleanUI(x) {
+          return {
+            target: TARGETS.includes(x?.target) ? x.target : "generic",
+            language: x?.language === "zh" ? "zh" : "en",
+            lockRig: x?.lockRig === true,
+            i2v: x?.i2v === true,
+          };
+        }
+        function cleanHistory(x) {
+          if (!Array.isArray(x)) return [];
+          return x.slice(0, 1000).flatMap((v) => {
+            try {
+              if (!isObject(v) || !str(v.id, 120) || !validDate(v.createdAt) || !validDate(v.updatedAt))
+                return [];
+              return [
+                {
+                  id: str(v.id, 120),
+                  createdAt: v.createdAt,
+                  updatedAt: v.updatedAt,
+                  idea: str(v.idea, 4000),
+                  slots: cleanSlots(v.slots),
+                  rig: cleanRig(v.rig),
+                  timeline: cleanTimeline(v.timeline),
+                  guidance: cleanGuidance(v.guidance),
+                  performance: cleanPerformance(v.performance),
+                  humanPlan: cleanHuman(v.humanPlan),
+                  humanBasis: str(v.humanBasis, 350000),
+                  favorite: v.favorite === true,
+                  ui: cleanUI(v.ui),
+                },
+              ];
+            } catch {
+              return [];
+            }
+          });
+        }
+        const HISTORY_LIMIT = 50,
+          FAVORITE_LIMIT = 200;
+        // Favorites never count against the 50 recent entries, so they are not evicted by autosave.
+        function trimHistory(x) {
+          const newest = (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt);
+          const favorites = x
+              .filter((v) => v.favorite)
+              .sort(newest)
+              .slice(0, FAVORITE_LIMIT),
+            recent = x
+              .filter((v) => !v.favorite)
+              .sort(newest)
+              .slice(0, HISTORY_LIMIT);
+          return [...favorites, ...recent];
+        }
+        function cleanLibrary(x) {
+          return (Array.isArray(x) ? x : [])
+            .slice(0, 500)
+            .filter(
+              (v) =>
+                isObject(v) &&
+                SLOT_KEYS.includes(v.slot) &&
+                str(v.zh, 500).trim() &&
+                str(v.en, 500).trim() &&
+                str(v.id, 120),
+            )
+            .map((v) => ({
+              id: str(v.id, 120),
+              slot: v.slot,
+              zh: str(v.zh, 500),
+              en: str(v.en, 500),
+              updatedAt: validDate(v.updatedAt) ? v.updatedAt : new Date(0).toISOString(),
+            }));
+        }
+        function readLocal(key) {
+          try {
+            const x = localStorage.getItem(key);
+            return x ? JSON.parse(x) : null;
+          } catch {
+            $("storageWarning").hidden = false;
+            return null;
+          }
+        }
+        const loaded = readLocal(KEYS.data),
+          rawCredentials = readLocal(KEYS.credentials);
+        let state = {
+          draft: { idea: "", slots: blankSlots(), rig: defaultRig(), timeline: blankTimeline() },
+          history: [],
+          library: [],
+          ui: cleanUI(null),
+          tombstones: [],
+          proposal: null,
+        };
+        if (isObject(loaded)) {
+          try {
+            if (loaded.draft) state.draft = cleanDraft(loaded.draft);
+          } catch {
+            $("storageWarning").hidden = false;
+          }
+          state.history = trimHistory(cleanHistory(loaded.history));
+          state.library = cleanLibrary(loaded.library);
+          state.ui = cleanUI(loaded.ui);
+          state.tombstones = cleanTombstones(loaded.tombstones);
+          state.proposal = cleanProposal(loaded.proposal);
+        }
+        let credentials = {
+          apiBase: str(rawCredentials?.apiBase, 500),
+          apiModel: str(rawCredentials?.apiModel, 150),
+          apiKey: str(rawCredentials?.apiKey, 500),
+          githubPat: str(rawCredentials?.githubPat, 500),
+          gistId: str(rawCredentials?.gistId, 64),
+          jsonMode: rawCredentials?.jsonMode === true,
+          responseFormat: responseFormatOf(rawCredentials || {}),
+        };
+        let revision = 0,
+          autoTimer,
+          saveTimer,
+          aiController = null,
+          syncBusy = false,
+          favoritesOnly = false,
+          hasPendingEdit = false,
+          // History entry that autosave keeps updating while the user edits, instead of adding a row per pause.
+          workingHistoryId = null;
+        function cleanTombstones(x) {
+          return (Array.isArray(x) ? x : [])
+            .filter(
+              (v) =>
+                isObject(v) &&
+                ["history", "library"].includes(v.type) &&
+                str(v.id, 120) &&
+                validDate(v.updatedAt),
+            )
+            .slice(-1000)
+            .map((v) => ({ type: v.type, id: str(v.id, 120), updatedAt: v.updatedAt }));
+        }
+        function toast(message, error = false) {
+          const t = document.createElement("div");
+          t.className = "toast" + (error ? " error" : "");
+          t.setAttribute("role", error ? "alert" : "status");
+          t.textContent = message;
+          $("toasts").append(t);
+          setTimeout(() => t.remove(), 6500);
+        }
+        function writeLocal(key, value) {
+          try {
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+          } catch {
+            $("storageWarning").hidden = false;
+            $("saveStatus").textContent = "存储失败 · 请导出";
+            return false;
+          }
+        }
+        function persist() {
+          clearTimeout(saveTimer);
+          const ok = writeLocal(KEYS.data, state);
+          if (ok) $("saveStatus").textContent = "已保存到本机";
+          return ok;
+        }
+        function icons() {
+          globalThis.lucide?.createIcons();
+        }
+        function renderSlots() {
+          const root = $("slots");
+          root.replaceChildren();
+          for (const d of DIMENSIONS) {
+            const card = document.createElement("article");
+            card.className = "panel slot";
+            card.innerHTML = `<div class="slot-top"><div class="slot-title"><i data-lucide="${d.icon}"></i><h3>${d.zh}<small>${d.en}</small></h3></div><span class="slot-count mono" id="count-${d.key}"></span></div><label class="field-label" for="${d.key}-zh">中文 / ZH</label><textarea id="${d.key}-zh" data-slot="${d.key}" data-lang="zh" maxlength="${MAX_TEXT}" placeholder="填写${d.zh}……"></textarea><label class="field-label" for="${d.key}-en">ENGLISH / EN</label><textarea id="${d.key}-en" data-slot="${d.key}" data-lang="en" maxlength="${MAX_TEXT}" placeholder="Describe ${d.en.toLowerCase()}…" spellcheck="false"></textarea><div class="chips" id="chips-${d.key}"></div><select id="preset-${d.key}" aria-label="${d.zh}完整预设词库"><option value="">浏览全部预设 / 自定义词条…</option></select>`;
+            root.append(card);
+            if (d.key === "action") {
+              const note = document.createElement("p");
+              note.id = "actionTimingNote";
+              note.className = "help";
+              note.textContent = "时间轴已启用：本槽位保留作参考，导出使用上方的分段动作。";
+              note.hidden = true;
+              card.querySelector(".slot-top").after(note);
+            }
+            for (const lang of ["zh", "en"]) {
+              const input = $(`${d.key}-${lang}`);
+              input.value = state.draft.slots[d.key][lang];
+              input.addEventListener("input", () => {
+                state.draft.slots[d.key][lang] = input.value;
+                edited();
+              });
+            }
+            const featured =
+              d.key === "camera" ? [2, 5, 12] : d.key === "environment" ? [4, 1, 3] : [0, 1, 2];
+            for (const index of featured) {
+              const b = document.createElement("button");
+              b.className = "chip";
+              b.textContent = d.terms[index][1];
+              b.title = d.terms[index][2];
+              b.addEventListener("click", () => appendTerm(d.key, d.terms[index][1], d.terms[index][2]));
+              $(`chips-${d.key}`).append(b);
+            }
+            $(`preset-${d.key}`).addEventListener("change", (e) => {
+              const v = e.target.value;
+              if (!v) return;
+              const term = v.startsWith("custom:") ? state.library.find((t) => t.id === v.slice(7)) : null;
+              if (term) appendTerm(d.key, term.zh, term.en);
+              else if (v.startsWith("builtin:")) {
+                const t = d.terms[Number(v.slice(8))];
+                if (t) appendTerm(d.key, t[1], t[2]);
+              }
+              e.target.value = "";
+            });
+          }
+          renderPresetOptions();
+          icons();
+        }
+        function renderPresetOptions() {
+          for (const d of DIMENSIONS) {
+            const select = $(`preset-${d.key}`);
+            if (!select) continue;
+            select.replaceChildren(new Option("浏览全部预设 / 自定义词条…", ""));
+            const groups = new Map();
+            d.terms.forEach((t, i) => {
+              if (!groups.has(t[0])) {
+                const g = document.createElement("optgroup");
+                g.label = t[0];
+                groups.set(t[0], g);
+                select.append(g);
+              }
+              groups.get(t[0]).append(new Option(`${t[1]} · ${t[2]}`, `builtin:${i}`));
+            });
+            const custom = state.library.filter((x) => x.slot === d.key);
+            if (custom.length) {
+              const g = document.createElement("optgroup");
+              g.label = "我的词库";
+              for (const t of custom) g.append(new Option(`${t.zh} · ${t.en}`, `custom:${t.id}`));
+              select.append(g);
+            }
+          }
+        }
+        function appendTerm(key, zh, en) {
+          if (key === "negative" && en === DEFAULT_NEG) {
+            state.draft.slots.negative = { zh: DEFAULT_NEG_ZH, en: DEFAULT_NEG };
+            for (const lang of ["zh", "en"]) $(`negative-${lang}`).value = state.draft.slots.negative[lang];
+            edited();
+            return;
+          }
+          for (const [lang, text] of Object.entries({ zh, en })) {
+            const old = state.draft.slots[key][lang].trim();
+            if (!old.toLowerCase().includes(text.toLowerCase()))
+              state.draft.slots[key][lang] = (old ? old + (lang === "zh" ? "，" : ", ") : "") + text;
+            state.draft.slots[key][lang] = state.draft.slots[key][lang].slice(0, MAX_TEXT);
+            $(`${key}-${lang}`).value = state.draft.slots[key][lang];
+          }
+          edited();
+        }
+        function edited() {
+          revision++;
+          hasPendingEdit = true;
+          $("saveStatus").textContent = "保存中…";
+          renderOutput();
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(persist, 350);
+          clearTimeout(autoTimer);
+          autoTimer = setTimeout(() => {
+            if (hasContent()) writeHistory(false);
+          }, 2000);
+        }
+        function hasContent() {
+          return (
+            POSITIVE_KEYS.some((k) => state.draft.slots[k].en.trim() || state.draft.slots[k].zh.trim()) ||
+            (!!state.draft.timeline?.enabled &&
+              state.draft.timeline.segments.some((v) => v.zh.trim() || v.en.trim()))
+          );
+        }
+        function sentence(t, lang) {
+          t = t.trim().replace(/[,，;；\s]+$/g, "");
+          return t ? (/[.!?。！？]$/.test(t) ? t : t + (lang === "zh" ? "。" : ".")) : "";
+        }
+        function isI2V() {
+          return state.ui.i2v === true || !!platform(state.ui.target).i2vOnly;
+        }
+        // Builds the exported prompt for the selected platform profile. Returns blocking `issues`
+        // (invalid timeline) and non-blocking `notes` (length, audio support) separately.
+        function outputFor(lang) {
+          const P = platform(state.ui.target),
+            zh = lang === "zh",
+            i2v = isI2V(),
+            s = state.draft.slots,
+            t = state.draft.timeline || blankTimeline(),
+            text = (k) => s[k][lang].trim(),
+            join = (parts) => parts.join(zh ? "" : " "),
+            notes = [];
+          const skip = new Set();
+          if (t.enabled) skip.add("action");
+          // Image-to-video: appearance, setting and look already live in the reference image.
+          if (i2v) ["subject", "environment", "style"].forEach((k) => skip.add(k));
+
+          const paragraph = [];
+          if (i2v)
+            paragraph.push(
+              zh
+                ? "保持参考图中的主体外观、场景与构图不变。"
+                : "Keep the subject's appearance, the setting and the composition from the reference image.",
+            );
+          for (const k of P.order) if (!skip.has(k) && text(k)) paragraph.push(sentence(text(k), lang));
+          let lead = join(paragraph);
+          if (P.cameraCommands && lead) {
+            const rig = cleanRig(state.draft.rig),
+              applied = s.camera.zh === rigPrompt(rig).zh && s.camera.en === rigPrompt(rig).en;
+            if (applied && HAILUO_CAMERA[rig.movement]) lead = HAILUO_CAMERA[rig.movement] + " " + lead;
+          }
+
+          const lines = [];
+          if (P.layout === "sections") {
+            if (text("camera"))
+              lines.push((zh ? "摄影：" : "Cinematography: ") + sentence(text("camera"), lang));
+            if (!skip.has("style") && text("style"))
+              lines.push((zh ? "风格：" : "Style: ") + sentence(text("style"), lang));
+          }
+          if (text("audio")) {
+            if (P.audio === "no") notes.push("该平台不生成声音，「声音与对白」未加入导出。");
+            else {
+              lines.push((zh ? "声音：" : "Audio: ") + sentence(text("audio"), lang));
+              if (P.audio === "some") notes.push("声音与对白仅在支持原生音频的模型版本中生效。");
+            }
+          }
+
+          let human = "";
+          if (humanCurrent(state.draft)) {
+            const h = state.draft.humanPlan;
+            const items = i2v
+              ? [h.continuity[lang]]
+              : [
+                  h.identity[lang].trim() === text("subject") ? "" : h.identity[lang],
+                  h.blocking[lang],
+                  h.continuity[lang],
+                ];
+            human =
+              (zh ? "人物与空间连续性：" : "Character and spatial continuity: ") +
+              join(items.filter(Boolean).map((x) => sentence(x, lang)));
+          }
+
+          const issues = timelineIssues(t, lang);
+          let timing = "";
+          if (t.enabled && !issues.length)
+            timing =
+              (zh
+                ? `总时长 ${t.duration.toFixed(1)} 秒。`
+                : `Total duration: ${t.duration.toFixed(1)} seconds. `) +
+              (t.continuous
+                ? zh
+                  ? "连续、平滑的单一长镜头。"
+                  : "A single continuous, seamless shot."
+                : "") +
+              "\n" +
+              t.segments
+                .map((v) => `[${v.start.toFixed(1)}–${v.end.toFixed(1)}s] ${v[lang].trim()}`)
+                .join("\n");
+
+          let positive = [lead, lines.join("\n"), human, timing].filter(Boolean).join("\n\n");
+          if (P.motionParam && positive) {
+            const rig = cleanRig(state.draft.rig);
+            positive += ["handheld", "orbit", "track"].includes(rig.movement)
+              ? " --motion high"
+              : " --motion low";
+          }
+          if (P.limit && positive.length > P.limit)
+            notes.push(
+              `当前 ${positive.length} 字符，超过该平台约 ${P.limit} 字符的输入上限（以平台当前限制为准），请精简。`,
+            );
+          return { positive, negative: text("negative"), issues, notes };
+        }
+        const NEGATIVE_HELP = {
+          field: "粘贴到平台独立的负向（反向）提示词输入框，不要拼进正向提示词。",
+          none: "该平台没有独立的负向字段：不要把这段拼进正向提示词，请用正向描述约束画面。",
+          some: "仅在平台提供独立负向输入框时使用；支持情况取决于所选模型。",
+        };
+        function renderOutput() {
+          const lang = state.ui.language,
+            out = outputFor(lang),
+            P = platform(state.ui.target);
+          $("positiveOutput").textContent =
+            out.positive ||
+            (hasContent()
+              ? `当前${lang === "zh" ? "中文" : "英文"}内容为空，请补充或切换语言。`
+              : "填写各维度槽位，或载入一个示例开始创作。");
+          $("negativeOutput").textContent = out.negative || "尚未填写负向提示词";
+          $("charCount").textContent = out.positive.length + " CHARS";
+          $("wordCount").textContent = (out.positive.match(/\S+/g) || []).length + " WORDS";
+          $("target").value = state.ui.target;
+          $("i2vMode").checked = isI2V();
+          $("i2vMode").disabled = !!P.i2vOnly;
+          document
+            .querySelectorAll("[data-language]")
+            .forEach((b) => b.setAttribute("aria-pressed", b.dataset.language === lang));
+          $("formatHint").textContent =
+            P.hint +
+            (isI2V() && !P.i2vOnly ? " 图生视频：只导出动作、运镜与声音，外观与场景交给参考图。" : "") +
+            " 仅生成提示词，不生成视频。";
+          $("negativeHelp").textContent = NEGATIVE_HELP[P.negative];
+          let filled = 0;
+          for (const k of SLOT_KEYS) {
+            const v = state.draft.slots[k];
+            if (v.en.trim() || v.zh.trim()) filled++;
+            const el = $(`count-${k}`);
+            if (el) el.textContent = String(v.en.length).padStart(3, "0");
+          }
+          $("dimensionCount").textContent = `${filled} / ${SLOT_KEYS.length} 维度已填写`;
+          for (const id of ["copyPositive", "downloadTxt"])
+            $(id).disabled = !out.positive || out.issues.length > 0;
+          for (const id of ["saveHistory", "downloadJson"]) $(id).disabled = !hasContent();
+          $("copyNegative").disabled = !out.negative;
+          $("actionTimingNote").hidden = !state.draft.timeline?.enabled;
+          $("outputWarning").hidden = !out.issues.length;
+          $("outputWarning").textContent = out.issues.length
+            ? "时间轴未加入输出，复制和 TXT 导出已暂停：" + out.issues[0]
+            : "";
+          $("outputNote").hidden = !out.notes.length;
+          $("outputNote").textContent = out.notes.join("\n");
+          renderTimelineStatus();
+          renderRig();
+          renderDirector();
+        }
+        function hydrate() {
+          workingHistoryId = null;
+          revision++;
+          $("idea").value = state.draft.idea;
+          for (const k of SLOT_KEYS)
+            for (const lang of ["zh", "en"]) $(`${k}-${lang}`).value = state.draft.slots[k][lang];
+          renderRig();
+          renderTimeline();
+          renderOutput();
+          persist();
+        }
+        function snapshot() {
+          return { ...cleanDraft(state.draft), ui: cleanUI(state.ui) };
+        }
+        function fingerprint(x) {
+          return JSON.stringify({
+            idea: x.idea,
+            slots: x.slots,
+            rig: cleanRig(x.rig),
+            timeline: cleanTimeline(x.timeline),
+            guidance: cleanGuidance(x.guidance),
+            performance: cleanPerformance(x.performance),
+            humanPlan: cleanHuman(x.humanPlan),
+            humanBasis: str(x.humanBasis, 350000),
+            ui: x.ui,
+          });
+        }
+        // freeze=false (autosave): update the current working entry in place.
+        // freeze=true (explicit save, or a checkpoint before/after content is replaced): store the
+        // current content and start a fresh working entry for the next edits.
+        function writeHistory(freeze) {
+          clearTimeout(autoTimer);
+          if (!hasContent()) return "empty";
+          const snap = snapshot(),
+            fp = fingerprint(snap);
+          let result = "duplicate";
+          if (!state.history.some((x) => fingerprint(x) === fp)) {
+            const now = new Date().toISOString(),
+              working = state.history.find((x) => x.id === workingHistoryId && !x.favorite);
+            if (working) Object.assign(working, snap, { createdAt: now, updatedAt: now });
+            else {
+              const row = { id: uid(), createdAt: now, updatedAt: now, favorite: false, ...snap };
+              state.history = [row, ...state.history];
+              workingHistoryId = row.id;
+            }
+            state.history = trimHistory(state.history);
+            result = "saved";
+          }
+          if (freeze) workingHistoryId = null;
+          hasPendingEdit = false;
+          if (!persist()) result = "memory";
+          renderHistory();
+          return result;
+        }
+        function saveHistory(notify = true) {
+          const result = writeHistory(true);
+          if (!notify) return;
+          if (result === "empty") toast("先填写一个正向维度再保存。", true);
+          else if (result === "duplicate") toast("这条提示词已在历史中");
+          else if (result === "memory") toast("历史暂存在内存，请导出备份", true);
+          else toast("已存入本地历史");
+        }
+        const checkpointHistory = () => saveHistory(false);
+        function renderHistory() {
+          const q = $("historySearch").value.trim().toLocaleLowerCase(),
+            root = $("historyList");
+          $("historyCount").textContent = state.history.length;
+          const favoriteCount = state.history.filter((v) => v.favorite).length;
+          $("historyTotal").textContent =
+            `${state.history.length - favoriteCount} / ${HISTORY_LIMIT}` +
+            (favoriteCount ? ` · 收藏 ${favoriteCount}` : "");
+          $("favoriteFilter").setAttribute("aria-pressed", favoritesOnly);
+          root.replaceChildren();
+          const rows = trimHistory([...state.history]).filter(
+            (v) =>
+              (!favoritesOnly || v.favorite) &&
+              (!q || JSON.stringify([v.idea, v.slots, v.timeline]).toLocaleLowerCase().includes(q)),
+          );
+          if (!rows.length) {
+            const div = document.createElement("div");
+            div.className = "empty";
+            div.innerHTML =
+              "<h3>这里还没有匹配的镜头</h3><p>编辑槽位后会自动保存，也可以点击「存入历史」。</p>";
+            root.append(div);
+            return;
+          }
+          for (const item of rows) {
+            const card = document.createElement("article");
+            card.className = "history-item";
+            const meta = document.createElement("div");
+            meta.className = "history-meta";
+            meta.append(document.createTextNode(new Date(item.createdAt).toLocaleString("zh-CN")));
+            const tag = document.createElement("span");
+            tag.textContent = item.favorite ? "已收藏 · 置顶" : item.ui.target.toUpperCase();
+            meta.append(tag);
+            const title = document.createElement("h3");
+            title.textContent = item.idea || item.slots.subject.zh || item.slots.subject.en || "未命名镜头";
+            const desc = document.createElement("p");
+            desc.textContent = POSITIVE_KEYS.map((k) => item.slots[k].en || item.slots[k].zh)
+              .filter(Boolean)
+              .join(" · ");
+            const actions = document.createElement("div");
+            actions.className = "history-actions";
+            for (const [text, fn, cls] of [
+              [
+                "重载",
+                () => {
+                  if (hasPendingEdit && hasContent()) saveHistory(false);
+                  clearTimeout(autoTimer);
+                  state.draft = cleanDraft(item);
+                  state.ui = cleanUI(item.ui);
+                  hasPendingEdit = false;
+                  hydrate();
+                  $("historyDialog").close();
+                  toast("已重载历史内容");
+                },
+                "",
+              ],
+              [
+                item.favorite ? "取消收藏" : "收藏 / 置顶",
+                () => {
+                  item.favorite = !item.favorite;
+                  item.updatedAt = new Date().toISOString();
+                  persist();
+                  renderHistory();
+                },
+                item.favorite ? "starred" : "",
+              ],
+              [
+                "删除",
+                () => {
+                  state.history = state.history.filter((v) => v.id !== item.id);
+                  addTombstone("history", item.id);
+                  persist();
+                  renderHistory();
+                  toast("已删除这条历史");
+                },
+                "danger",
+              ],
+            ]) {
+              const b = document.createElement("button");
+              b.textContent = text;
+              b.className = cls;
+              b.addEventListener("click", fn);
+              actions.append(b);
+            }
+            card.append(meta, title, desc, actions);
+            root.append(card);
+          }
+        }
+        function addTombstone(type, id) {
+          state.tombstones = [...state.tombstones, { type, id, updatedAt: new Date().toISOString() }].slice(
+            -1000,
+          );
+        }
+        function renderLibrary() {
+          const root = $("customLibrary");
+          root.replaceChildren();
+          if (!state.library.length) {
+            const p = document.createElement("p");
+            p.className = "empty";
+            p.textContent = "常用的镜头表达，留在这里。";
+            root.append(p);
+          }
+          for (const item of state.library) {
+            const row = document.createElement("div");
+            row.className = "library-item";
+            const text = document.createElement("div"),
+              title = document.createElement("b"),
+              en = document.createElement("small");
+            title.textContent = `${DIMENSIONS.find((d) => d.key === item.slot).zh} · ${item.zh}`;
+            en.textContent = item.en;
+            text.append(title, en);
+            const b = document.createElement("button");
+            b.className = "ghost danger";
+            b.textContent = "删除";
+            b.addEventListener("click", () => {
+              state.library = state.library.filter((v) => v.id !== item.id);
+              addTombstone("library", item.id);
+              persist();
+              renderLibrary();
+              renderPresetOptions();
+            });
+            row.append(text, b);
+            root.append(row);
+          }
+        }
+        async function copy(text) {
+          try {
+            if (!text) return;
+            try {
+              if (!navigator.clipboard?.writeText) throw Error();
+              await navigator.clipboard.writeText(text);
+            } catch {
+              const t = document.createElement("textarea");
+              t.value = text;
+              t.style.cssText = "position:fixed;left:-9999px;top:0";
+              const parent = document.querySelector("dialog[open]") || document.body;
+              parent.append(t);
+              t.focus();
+              t.select();
+              const ok = document.execCommand("copy");
+              t.remove();
+              if (!ok) throw Error();
+            }
+            toast("已复制到剪贴板");
+          } catch {
+            toast("复制失败，请选中预览文本手动复制。", true);
+          }
+        }
+        function download(content, name, type) {
+          const blob = new Blob([content], { type }),
+            url = URL.createObjectURL(blob),
+            a = document.createElement("a");
+          a.href = url;
+          a.download = name;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          toast("已生成下载文件");
+        }
+        function redact(value) {
+          if (typeof value === "string") {
+            for (const secret of [credentials.apiKey, credentials.githubPat].filter(Boolean))
+              value = value.split(secret).join("[REDACTED]");
+            return value;
+          }
+          if (Array.isArray(value)) return value.map(redact);
+          if (isObject(value))
+            return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, redact(v)]));
+          return value;
+        }
+        function backupPayload() {
+          return redact({
+            app: "video-prompt-studio",
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            history: cleanHistory(state.history),
+            library: cleanLibrary(state.library),
+            ui: cleanUI(state.ui),
+            tombstones: cleanTombstones(state.tombstones),
+          });
+        }
+        function settingsToForm() {
+          for (const key of ["apiBase", "apiModel", "apiKey", "githubPat", "gistId"])
+            $(key).value = credentials[key];
+          $("responseFormat").value = responseFormatOf(credentials);
+          $("provider").value = "custom";
+        }
+        // Loopback and private-network hosts (e.g. Ollama on another machine in the LAN) may use HTTP
+        // and need no API key.
+        function isLocalHost(host) {
+          return (
+            ["localhost", "127.0.0.1", "[::1]"].includes(host) ||
+            /^(10\.\d+|192\.168|172\.(1[6-9]|2\d|3[01]))\.\d+\.\d+$/.test(host) ||
+            host.endsWith(".local")
+          );
+        }
+        function endpoint(base) {
+          let u;
+          try {
+            u = new URL(base);
+          } catch {
+            throw Error("请输入完整的 API URL，例如 https://api.deepseek.com/v1");
+          }
+          if (u.protocol !== "https:" && !(isLocalHost(u.hostname) && u.protocol === "http:"))
+            throw Error("API 地址必须使用 HTTPS，本机或局域网地址可使用 HTTP。");
+          if (u.username || u.password || u.search || u.hash)
+            throw Error("API 地址不能包含用户名、密码、查询参数或锚点；密钥请填在 API Key 中。");
+          u.pathname = u.pathname.replace(/\/+$/, "");
+          if (!u.pathname.endsWith("/chat/completions")) u.pathname += "/chat/completions";
+          return u.href;
+        }
+        function captureSettings() {
+          const next = {
+            apiBase: $("apiBase").value.trim(),
+            apiModel: $("apiModel").value.trim(),
+            apiKey: $("apiKey").value.trim(),
+            githubPat: $("githubPat").value.trim(),
+            gistId: $("gistId").value.trim(),
+            jsonMode: false,
+            responseFormat: $("responseFormat").value,
+          };
+          if (next.apiBase) endpoint(next.apiBase);
+          if (next.gistId && !/^[a-fA-F0-9]{5,64}$/.test(next.gistId))
+            throw Error("Gist ID 应为十六进制 ID，请只粘贴 ID，不要粘贴整条链接。");
+          credentials = next;
+          updateConnection();
+          return writeLocal(KEYS.credentials, credentials);
+        }
+        function updateConnection() {
+          $("connectionStatus").textContent =
+            credentials.apiBase && credentials.apiModel ? "AI 接口已配置" : "离线模式 · 就绪";
+        }
+        function friendlyError(e) {
+          if (e?.name === "AbortError") return "请求已取消或超时，已有输入已保留。";
+          if (e instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(e?.message || ""))
+            return "网络请求失败，请检查 API 地址、网络或跨域 (CORS) 设置。";
+          return e?.message || "操作失败，请稍后重试。";
+        }
+        async function fetchJSON(url, options = {}, timeout = 30000, controller = new AbortController()) {
+          const timer = setTimeout(() => controller.abort(), timeout);
+          try {
+            const response = await fetch(url, {
+              ...options,
+              signal: controller.signal,
+              redirect: "error",
+              referrerPolicy: "no-referrer",
+            });
+            if (!response.ok) {
+              const status = response.status;
+              throw Error(
+                status === 401
+                  ? "认证失败 (401)，请检查密钥。"
+                  : status === 403
+                    ? "访问被拒绝 (403)，请检查令牌权限或限流状态。"
+                    : status === 404
+                      ? "地址或资源不存在 (404)，请检查 API 路径、模型或 Gist ID。"
+                      : status === 429
+                        ? "请求过于频繁 (429)，请稍后重试。"
+                        : `服务返回 HTTP ${status}，请检查接口配置后重试。`,
+              );
+            }
+            const text = await response.text();
+            if (text.length > 3000000) throw Error("响应数据过大，请缩小备份或请求内容。");
+            try {
+              return JSON.parse(text);
+            } catch {
+              throw Error("接口未返回有效 JSON，请检查是否填写了 API 地址。");
+            }
+          } finally {
+            clearTimeout(timer);
+          }
+        }
+        async function expand(mode = "slots") {
+          if (aiController) return;
+          const timelineMode = mode === "timeline",
+            directorMode = mode === "director";
+          if (!state.draft.idea.trim() && !timelineMode) {
+            toast("先写下一句话灵感。", true);
+            $("idea").focus();
+            return;
+          }
+          if (timelineMode && !hasContent() && !state.draft.idea.trim()) {
+            toast("先填写灵感或载入一个示例，再编排时间轴。", true);
+            return;
+          }
+          if (!credentials.apiBase || !credentials.apiModel) {
+            toast("先在连接设置中填写 API 地址和模型。");
+            openDialog("settingsDialog");
+            return;
+          }
+          let url;
+          try {
+            url = endpoint(credentials.apiBase);
+            if (!credentials.apiKey && !isLocalHost(new URL(url).hostname))
+              throw Error("请先在连接设置中填写 API Key。");
+          } catch (e) {
+            toast(friendlyError(e), true);
+            return;
+          }
+          const startRevision = revision,
+            t = state.draft.timeline || blankTimeline(),
+            duration = t.duration,
+            continuous = t.continuous,
+            signature = directorSignature();
+          const lockedRig = directorMode && state.ui.lockRig ? cleanRig(state.draft.rig) : null;
+          const performance = performanceContext(state.draft);
+          // Everything the user already wrote travels with the request, so AI refines instead of replacing it.
+          const shared = {
+            current_slots: filledSlots(state.draft.slots),
+            platform: platformBrief(),
+            image_to_video: isI2V(),
+          };
+          const user = directorMode
+            ? JSON.stringify({
+                concept: state.draft.idea,
+                duration,
+                continuous,
+                camera_constraints: lockedRig,
+                performance,
+                ...shared,
+              })
+            : timelineMode
+              ? JSON.stringify({
+                  idea: state.draft.idea,
+                  slots: state.draft.slots,
+                  duration,
+                  continuous,
+                  performance,
+                  ...shared,
+                })
+              : JSON.stringify({ concept: state.draft.idea, performance, ...shared });
+          const humanRules = performance.required
+            ? "\n" +
+              PERFORMANCE_RULES +
+              "\nUser identity anchors: " +
+              performance.identity +
+              "\nUser staging and goal: " +
+              performance.staging
+            : "";
+          aiController = new AbortController();
+          const headers = { "Content-Type": "application/json" };
+          if (credentials.apiKey) headers.Authorization = `Bearer ${credentials.apiKey}`;
+          // Freeze request settings so a settings change during the request cannot mix models.
+          const ctx = {
+            url,
+            headers,
+            model: credentials.apiModel,
+            format: responseFormatOf(credentials),
+            controller: aiController,
+          };
+          for (const id of ["expandBtn", "aiTimeline", "directorBtn"]) $(id).disabled = true;
+          $("expandLabel").textContent = !timelineMode && !directorMode ? "正在扩写…" : "仅扩写各维度";
+          $("timelineAILabel").textContent = timelineMode ? "正在编排…" : "AI 编排";
+          $("directorLabel").textContent = directorMode ? "正在规划…" : "AI 导演规划";
+          $("cancelAI").hidden = false;
+          $("aiStatus").hidden = false;
+          $("aiStatus").textContent = directorMode
+            ? "正在扩写画面、选择摄影机并编排时间轴；含人物时另做一次逻辑复核，每步最长 180 秒。"
+            : timelineMode
+              ? "正在编排双语时间轴；最长等待 120 秒。"
+              : "正在拆解镜头各维度；最长等待 120 秒。";
+          try {
+            let valid = await requestJSON({
+              ctx,
+              system: directorMode
+                ? DIRECTOR_SYSTEM
+                : (timelineMode ? TIMELINE_SYSTEM : SYSTEM_PROMPT) + humanRules,
+              user,
+              schemaName: directorMode ? "director" : timelineMode ? "timeline" : "slots",
+              timeout: directorMode ? 180000 : 120000,
+              validate: (x) => {
+                const v = directorMode
+                  ? parseDirectorPlan(x, duration, continuous, lockedRig, performance.required)
+                  : timelineMode
+                    ? parseTimelineAI(x, duration, continuous)
+                    : cleanSlots(x, true);
+                if (directorMode && performance.mode === "general" && v.human)
+                  throw Error("通用场景模式下 human 必须为 null。");
+                return v;
+              },
+            });
+            if (revision !== startRevision || (directorMode && signature !== directorSignature()))
+              throw Error("扩写期间你修改了草稿，已保留最新编辑。请再次点击扩写。");
+            if (directorMode && valid.human) {
+              valid = await reviewHumanPlan(valid, duration, continuous, lockedRig, performance, ctx);
+              if (revision !== startRevision || signature !== directorSignature())
+                throw Error("复核期间你修改了草稿，已保留最新编辑。请重新规划。");
+            }
+            if (directorMode) {
+              state.proposal = {
+                plan: valid,
+                duration,
+                continuous,
+                lockedRig,
+                signature,
+                createdAt: new Date().toISOString(),
+                accepted: { camera: false, timeline: false },
+              };
+              renderDirector();
+              persist();
+              $("aiStatus").textContent = valid.human
+                ? "人物方案已完成两步文本规划与复核。请审阅行为因果与剩余难点后采纳。"
+                : "导演方案已生成。查看推荐理由后，可整套或分别采纳。";
+              toast("各维度、摄影机与时间轴建议已就绪，原稿保留");
+            } else {
+              checkpointHistory();
+              state.draft.humanPlan = null;
+              state.draft.humanBasis = "";
+              if (timelineMode) {
+                state.draft.timeline = valid;
+                state.draft.guidance = { ...cleanGuidance(state.draft.guidance), timeline: null };
+              } else {
+                state.draft.slots = valid;
+                state.draft.guidance = { ...cleanGuidance(state.draft.guidance), camera: null };
+              }
+              hydrate();
+              checkpointHistory();
+              $("aiStatus").textContent = timelineMode
+                ? "双语时间轴已回填并保存。"
+                : "扩写完成，现有时间轴已保留，请检查动作是否一致。";
+              toast(timelineMode ? "双语时间轴已回填" : "各维度双语内容已回填");
+            }
+          } catch (e) {
+            $("aiStatus").textContent = friendlyError(e);
+            toast(friendlyError(e), true);
+          } finally {
+            aiController = null;
+            for (const id of ["expandBtn", "aiTimeline", "directorBtn"]) $(id).disabled = false;
+            $("expandLabel").textContent = "仅扩写各维度";
+            $("timelineAILabel").textContent = "AI 编排";
+            $("directorLabel").textContent = "AI 导演规划";
+            $("cancelAI").hidden = true;
+          }
+        }
+        function mergeBackup(data) {
+          if (
+            !isObject(data) ||
+            data.app !== "video-prompt-studio" ||
+            data.version !== 1 ||
+            !Array.isArray(data.history) ||
+            !Array.isArray(data.library) ||
+            !isObject(data.ui)
+          )
+            throw Error("备份格式或版本不匹配，本地数据未改变。");
+          const remoteHistory = cleanHistory(data.history),
+            remoteLibrary = cleanLibrary(data.library);
+          if (remoteHistory.length !== data.history.length || remoteLibrary.length !== data.library.length)
+            throw Error("备份包含无效记录，本地数据未改变。");
+          const tombMap = new Map();
+          for (const t of [...state.tombstones, ...cleanTombstones(data.tombstones)]) {
+            const key = t.type + ":" + t.id,
+              old = tombMap.get(key);
+            if (!old || Date.parse(t.updatedAt) > Date.parse(old.updatedAt)) tombMap.set(key, t);
+          }
+          const merge = (local, remote, type) => {
+            const map = new Map();
+            for (const v of [...local, ...remote]) {
+              const old = map.get(v.id);
+              if (!old || Date.parse(v.updatedAt) > Date.parse(old.updatedAt)) map.set(v.id, v);
+            }
+            return [...map.values()].filter((v) => {
+              const tomb = tombMap.get(type + ":" + v.id);
+              return !tomb || Date.parse(tomb.updatedAt) < Date.parse(v.updatedAt);
+            });
+          };
+          const history = trimHistory(merge(state.history, remoteHistory, "history")),
+            library = merge(state.library, remoteLibrary, "library").slice(0, 500);
+          state = {
+            ...state,
+            history,
+            library,
+            ui: cleanUI(data.ui),
+            tombstones: [...tombMap.values()].slice(-1000),
+          };
+          const ok = persist();
+          renderOutput();
+          renderHistory();
+          renderLibrary();
+          renderPresetOptions();
+          return ok;
+        }
+        async function syncGist(pull = false) {
+          if (syncBusy) return;
+          try {
+            if (!captureSettings()) throw Error("凭证无法保存到本机，请先解决浏览器存储问题。");
+            if (!credentials.githubPat) throw Error("请填写具备 gist 权限的 GitHub PAT。");
+            if (pull && !credentials.gistId) throw Error("请填写需要恢复的 Gist ID。");
+            if (hasPendingEdit && hasContent()) saveHistory(false);
+            syncBusy = true;
+            for (const id of ["uploadGist", "pullGist", "clearCredentials"]) $(id).disabled = true;
+            $("syncStatus").textContent = pull ? "正在读取并合并备份…" : "正在上传脱敏备份…";
+            const headers = {
+              Accept: "application/vnd.github+json",
+              Authorization: `Bearer ${credentials.githubPat}`,
+              "X-GitHub-Api-Version": "2022-11-28",
+            };
+            const url = "https://api.github.com/gists" + (credentials.gistId ? "/" + credentials.gistId : "");
+            if (pull) {
+              const gist = await fetchJSON(url, { headers });
+              const file = gist?.files?.["video_prompts_backup.json"];
+              if (!file || typeof file.content !== "string")
+                throw Error("Gist 内未找到 video_prompts_backup.json。");
+              if (file.truncated) throw Error("云端备份文件被截断，无法安全合并。请下载完整文件后缩小备份。");
+              let data;
+              try {
+                data = JSON.parse(file.content);
+              } catch {
+                throw Error("云端备份 JSON 损坏，本地数据未改变。");
+              }
+              const ok = mergeBackup(data);
+              if (!ok) throw Error("数据已合并到内存，但本机存储失败，请立即下载备份。");
+              toast("云端历史已合并，当前草稿已保留");
+            } else {
+              const content = JSON.stringify(backupPayload(), null, 2);
+              if (new Blob([content]).size > 900000)
+                throw Error("备份超过 900 KB，请先下载备份并删减部分历史。");
+              const body = { files: { "video_prompts_backup.json": { content } } };
+              if (!credentials.gistId) {
+                body.public = false;
+                body.description = "Video Prompt Studio · prompt history backup";
+              }
+              const gist = await fetchJSON(url, {
+                method: credentials.gistId ? "PATCH" : "POST",
+                headers: { ...headers, "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              });
+              if (typeof gist.id !== "string" || !/^[a-fA-F0-9]{5,64}$/.test(gist.id))
+                throw Error("GitHub 响应缺少有效 Gist ID，请检查账号中的 Gist 后再重试。");
+              credentials.gistId = gist.id;
+              $("gistId").value = gist.id;
+              if (!writeLocal(KEYS.credentials, credentials))
+                throw Error("上传成功，但 Gist ID 无法保存，请复制设置中的 ID。");
+              toast("已上传云端，Gist ID 已保存");
+            }
+            $("syncStatus").textContent = "上次成功同步：" + new Date().toLocaleString("zh-CN");
+          } catch (e) {
+            $("syncStatus").textContent = friendlyError(e);
+            toast(friendlyError(e), true);
+          } finally {
+            syncBusy = false;
+            for (const id of ["uploadGist", "pullGist", "clearCredentials"]) $(id).disabled = false;
+          }
+        }
+        const BOAT_TIMELINE = {
+          enabled: true,
+          duration: 10,
+          continuous: true,
+          segments: [
+            {
+              start: 0,
+              end: 2,
+              zh: "橘猫安静坐在屋檐下，轻微呼吸。屋檐滴水形成微弱水流，将白色纸船推入前景。",
+              en: "The orange cat sits quietly beneath the awning, breathing gently. A weak current from dripping rain carries a white paper boat into the foreground.",
+            },
+            {
+              start: 2,
+              end: 4,
+              zh: "猫低头看向纸船，头部轻倾，身体保持稳定。",
+              en: "The cat lowers its gaze to the boat and gently tilts its head, keeping its body stable.",
+            },
+            {
+              start: 4,
+              end: 5.5,
+              zh: "猫缓慢抬起右前爪，谨慎伸向靠近自己的船沿。",
+              en: "The cat slowly lifts its right front paw and carefully reaches toward the near edge of the boat.",
+            },
+            {
+              start: 5.5,
+              end: 6,
+              zh: "爪尖轻触船沿一次后离开。纸船微转，水面泛起小涟漪。",
+              en: "The paw tip lightly touches the boat edge once and lifts away. The boat turns slightly, sending small ripples across the water.",
+            },
+            {
+              start: 6,
+              end: 8,
+              zh: "猫收回前爪放在地面，目光跟随纸船随水流缓慢漂远。",
+              en: "The cat returns its paw to the ground and follows the boat with its eyes as the current carries it slowly away.",
+            },
+            {
+              start: 8,
+              end: 10,
+              zh: "镜头推进至猫的面部近景，焦点跟随猫，远处纸船自然虚化。猫自然眨眼一次，眼中映着便利店暖光。",
+              en: "The camera pushes into a close-up of the cat, holding focus on its face as the distant boat softens into bokeh. The cat blinks once, warm shop light reflected in its eyes.",
+            },
+          ],
+        };
+
+        const HUMAN_EXAMPLE = {
+          idea: "雨天窗边，一位短直黑发、穿米色针织衫的成年女性坐在桌旁，双手原本捧着白色陶瓷杯。她先把杯子放稳，再将手收回膝上，最后看向窗外的雨。10秒，动作克制自然。",
+          rig: {
+            body: "none",
+            focal: "50",
+            shot: "medium",
+            angle: "eye",
+            movement: "locked",
+            aperture: "5.6",
+            optics: "spherical",
+            cadence: "natural",
+          },
+          performance: {
+            mode: "human",
+            strategy: "stable",
+            identity: "同一位成年女性，短直黑发，米色圆领针织衫；保持发型、服装与白色无柄陶瓷杯一致。",
+            staging:
+              "她坐在桌旁，双脚着地，双手在胸腹之间捧杯；右手环抱杯身，左手扶住另一侧杯身，杯底保持露出。桌面在身前，窗在画面左侧。目的是先放稳杯子，再腾出双手看雨。",
+          },
+          subject: [
+            "成年女性，短直黑发，米色圆领针织衫，深灰长裤；同一面容、发型与服装轮廓，白色无柄陶瓷杯",
+            "An adult woman with straight short black hair, a beige crew-neck sweater and dark gray trousers; consistent face, hairstyle, garment silhouette and a white handleless ceramic cup",
+          ],
+          action: [
+            "双手捧杯并将它放到桌上，杯底获得支撑后才松手，收回双手后再自然看向窗外",
+            "She sets the cup on the table with both hands, releases it only after its base is supported, withdraws her hands and then looks toward the window",
+          ],
+          environment: [
+            "阴雨天，窗在画面左侧，柔和自然侧光；桌面、椅子与窗的位置全程固定，安静的室内",
+            "A rainy day with a window on frame left and soft natural sidelight; a quiet interior with fixed table, chair and window positions",
+          ],
+          audio: [
+            "窗外细雨声，杯底轻放在桌面上的一声轻响，安静的室内，无对白，无背景音乐",
+            "Soft rain outside the window, a gentle clink as the cup base meets the table, quiet room tone; no dialogue, no music",
+          ],
+          style: [
+            "克制的写实电影质感，自然皮肤纹理，柔和高光；面部、双手与杯子都处于可读的景深范围",
+            "Restrained cinematic realism, natural skin texture and soft highlights; the face, both hands and cup remain legible within the depth of field",
+          ],
+          timeline: {
+            enabled: true,
+            duration: 10,
+            continuous: true,
+            segments: [
+              {
+                start: 0,
+                end: 2,
+                zh: "她坐稳、双脚着地，右手环抱杯身、左手扶住另一侧，杯底露出。目光落到身前桌面的空位，杯子保持直立，肩部仅有轻微呼吸。",
+                en: "Seated with both feet grounded, she holds the cup upright with her right hand around one side and her left hand supporting the opposite side, leaving its base unobstructed. Her gaze settles on a clear spot on the table ahead; her shoulders move subtly with breathing.",
+              },
+              {
+                start: 2,
+                end: 4.5,
+                zh: "她的上身小幅前倾，两只手共同托住杯子，缓慢向前下方移动，手腕随路径自然调整，杯身始终直立。",
+                en: "Her torso leans slightly forward as both hands carry the upright cup slowly forward and downward, wrists adjusting naturally along the path.",
+              },
+              {
+                start: 4.5,
+                end: 6,
+                zh: "杯底完整接触桌面并保持稳定后，左手先卸去扶持力，右手手指再自然放松，杯子留在原位。",
+                en: "After the full cup base meets the table and settles, her left hand relaxes its supporting grip and the fingers of her right hand relax naturally. The cup stays in place.",
+              },
+              {
+                start: 6,
+                end: 8,
+                zh: "她的双手离开杯子，沿原路径自然收回并落在膝上，上身回到舒适坐姿；杯子一直静置桌面。",
+                en: "Both hands move clear of the cup and return naturally to her lap as her torso settles into a comfortable seated posture. The cup remains still on the table.",
+              },
+              {
+                start: 8,
+                end: 10,
+                zh: "双手安放后，她先将目光转向左侧窗户，再小幅转头看雨，肩部保持放松，表情平静，保持自然坐姿。",
+                en: "With her hands resting, her eyes shift toward the window on frame left, followed by a small head turn to watch the rain. Her shoulders remain relaxed and her expression quiet.",
+              },
+            ],
+          },
+        };
+        function humanExamplePlan() {
+          const e = HUMAN_EXAMPLE,
+            pair = (zh, en) => ({ zh, en });
+          return {
+            identity: pair(e.subject[0], e.subject[1]),
+            blocking: pair(
+              e.performance.staging,
+              "She sits beside the table with both feet grounded, right hand around one side of the cup and left hand supporting the opposite side, with its base unobstructed; the table is ahead and the window is on frame left. Her goal is to set the cup down before looking at the rain.",
+            ),
+            logic: [
+              {
+                start: 0,
+                end: 2,
+                cause: pair(
+                  "她准备把杯子放回桌上，需要先确认落点。",
+                  "She intends to put the cup down and first locates the landing spot.",
+                ),
+                result: pair(
+                  "目光确认桌面空位，双手仍承担杯子的重量。",
+                  "Her gaze locates a clear spot while both hands still support the cup.",
+                ),
+              },
+              {
+                start: 2,
+                end: 4.5,
+                cause: pair(
+                  "落点已确认，开始将杯子送向桌面。",
+                  "The landing spot is established, so she brings the cup toward it.",
+                ),
+                result: pair(
+                  "杯子接近桌面，全程由双手支撑且保持直立。",
+                  "The upright cup approaches the table while remaining supported by both hands.",
+                ),
+              },
+              {
+                start: 4.5,
+                end: 6,
+                cause: pair(
+                  "杯底到达桌面，支撑可由双手转交桌面。",
+                  "The base reaches the table, allowing support to transfer from her hands.",
+                ),
+                result: pair(
+                  "桌面承重，手指放松，杯子没有悬空或位移。",
+                  "The table takes the load, her fingers relax and the cup stays supported and stationary.",
+                ),
+              },
+              {
+                start: 6,
+                end: 8,
+                cause: pair(
+                  "杯子已稳定，不再需要双手维持支撑。",
+                  "The cup is stable and no longer needs hand support.",
+                ),
+                result: pair(
+                  "双手回到膝上，上身坐稳，杯子留在桌面。",
+                  "Her hands rest in her lap, her torso settles and the cup remains on the table.",
+                ),
+              },
+              {
+                start: 8,
+                end: 10,
+                cause: pair(
+                  "放杯动作结束，她可以把注意力转回窗外的雨。",
+                  "The cup-setting task is complete, freeing her attention for the rain outside.",
+                ),
+                result: pair(
+                  "视线与头部朝向同一扇窗，双手和杯子状态保持。",
+                  "Her gaze and head align toward the same window while her hands and the cup retain their settled states.",
+                ),
+              },
+            ],
+            continuity: pair(
+              "左右手分工全程一致。杯子从手中转移到桌面后保持原位，手指仅在杯底获得支撑后松开；上身前倾与回坐幅度很小，椅子和双脚提供稳定支撑。",
+              "Hand laterality remains consistent. The cup stays where it is placed; fingers release only after its base is supported. The small torso lean and return remain balanced over the chair and grounded feet.",
+            ),
+            review: null,
+            risks: [
+              pair(
+                "手指和杯身的遮挡接触仍需在生成结果中检查；文字约束不能保证抓握细节正确。",
+                "Finger-to-cup contact through occlusion still needs inspection in the generated video; text cannot guarantee correct grip details.",
+              ),
+            ],
+          };
+        }
+
+        const EXAMPLES = {
+          cat: {
+            idea: "赛博朋克雨夜，一只流浪猫在屋檐下避雨",
+            camera: [
+              "低角度中景，镜头缓慢推进，35mm 变形镜头，浅景深",
+              "A low-angle medium shot slowly dollies in, captured with a 35mm anamorphic lens and shallow depth of field",
+            ],
+            subject: [
+              "一只琥珀色眼睛的橘色流浪猫，湿润毛发层次清晰，蜷缩在屋檐下，解剖结构保持一致",
+              "An orange stray cat with amber eyes and finely detailed wet fur shelters beneath an awning, its anatomy and proportions remaining consistent",
+            ],
+            action: [
+              "猫轻轻眨眼，耳朵随远处声响微动；雨滴从屋檐落下，在水洼中激起符合重力的细小涟漪",
+              "The cat blinks gently and its ears twitch at distant sounds; raindrops fall from the awning under gravity, splashing into small ripples in the puddles",
+            ],
+            environment: [
+              "雨夜湿滑的柏油路，青色与暖红霓虹倒映在水面，柔和霓虹勾勒毛发边缘",
+              "A wet asphalt alley at night, with cyan and warm red neon reflected in puddles and soft neon rim light tracing the fur",
+            ],
+            audio: [
+              "细雨打在屋檐和水洼上，远处城市低鸣，无对白，无背景音乐",
+              "Soft rain tapping on the awning and puddles, a low distant city hum; no dialogue, no music",
+            ],
+            style: [
+              "35mm 柯达 5219 胶片颗粒，克制的电影明暗对比，写实调色，4K 构图",
+              "35mm Kodak 5219 grain, restrained cinematic chiaroscuro, photorealistic color graded, cinematic 4k composition",
+            ],
+          },
+          desert: {
+            idea: "夕阳下，一位旅人穿过广袤的沙漠，风扬起衣角",
+            camera: [
+              "全景，镜头平稳横向跟随，35mm 变形镜头",
+              "A wide shot tracks laterally at a steady pace through a 35mm anamorphic lens",
+            ],
+            subject: [
+              "身穿沙色风衣的孤独旅人，精细布料肌理，体态和面容一致",
+              "A lone traveler in a sand-colored trench coat with detailed woven fabric and consistent anatomy and facial features",
+            ],
+            action: [
+              "旅人缓慢走过沙脊，脚步带来真实的重心转移，沙粒随步伐滑落，风衣顺风摆动",
+              "The traveler walks slowly along a dune ridge with realistic weight shifts; sand slips beneath each footstep and the coat flutters with the wind",
+            ],
+            environment: [
+              "被夕阳染成金色的沙丘，黄金时刻漫射光，远方热浪微微扭曲空气",
+              "Golden desert dunes in soft golden-hour light, with subtle heat haze distorting the distant air",
+            ],
+            audio: [
+              "风掠过沙丘的低鸣，脚步踩沙的沙沙声，风衣布料拍动，无对白",
+              "Low wind sweeping over the dunes, the soft crunch of footsteps in sand and the flap of the coat; no dialogue",
+            ],
+            style: [
+              "自然电影调色，35mm 柯达胶片颗粒，电影级 4K 构图",
+              "Natural cinematic color grading, 35mm Kodak 5219 grain, cinematic 4k composition",
+            ],
+          },
+          ocean: {
+            idea: "幽暗深海中，一只发光水母随着洋流缓缓漂浮",
+            camera: [
+              "特写，镜头缓慢环绕，浅景深",
+              "A close-up with a slow orbiting camera and shallow depth of field",
+            ],
+            subject: [
+              "半透明的深海水母，蓝绿色生物荧光，细腻而结构一致的触须",
+              "A translucent deep-sea jellyfish with blue-green bioluminescence and delicate, structurally consistent tentacles",
+            ],
+            action: [
+              "伞状身体有节律地收缩，触须受流体阻力牵引，微小悬浮粒子沿水流移动",
+              "Its bell contracts rhythmically while tentacles trail with fluid drag and suspended particles drift along the current",
+            ],
+            environment: [
+              "幽暗深海，远处微弱的体积光穿过水体，柔和的蓝色光晕",
+              "A dark deep-ocean environment with faint volumetric light filtering through water and a soft blue ambient glow",
+            ],
+            audio: [
+              "深海低频的水流声与轻微气泡声，空灵的氛围配乐",
+              "Deep, low underwater ambience with faint bubbles and an ethereal ambient score",
+            ],
+            style: [
+              "微距自然纪录片质感，真实流体动力学，电影级 4K 构图",
+              "Macro nature-documentary realism, physically coherent fluid dynamics, cinematic 4k composition",
+            ],
+          },
+          boat: {
+            idea: "雨夜便利店屋檐下，一只橘猫发现漂来的白色纸船，轻碰船沿后看着它漂远。10秒连续长镜头。",
+            camera: [
+              "低角度中景，贴近地面，35mm 电影镜头，浅景深，缓慢平稳推进",
+              "A low-angle medium shot close to the ground, a 35mm cinema lens with shallow depth of field and a slow, smooth dolly in",
+            ],
+            subject: [
+              "一只琥珀色眼睛的橘色流浪猫，毛发微湿，解剖结构和毛色保持一致；一艘折叠结构稳定的白色小纸船",
+              "An orange stray cat with amber eyes and slightly wet fur, consistent anatomy and fur markings; a small white paper boat with a consistent folded shape",
+            ],
+            action: [
+              "猫发现纸船，抬爪轻触船沿一次后收回；纸船遵循水流漂动，猫爪、水面和纸船的接触符合物理规律",
+              "The cat notices the boat, gently touches its edge once, and withdraws its paw; the boat follows the current, with physically coherent contact between paw, paper and water",
+            ],
+            environment: [
+              "深夜细雨，便利店屋檐挡住猫头顶的雨，青色与暖黄色灯光映在湿地面，屋檐滴水推动浅水流，安静温柔带孤独感",
+              "Light rain at night beneath a convenience-store awning sheltering the cat, cyan and warm yellow light reflected on wet pavement, dripping rain feeding a shallow current, a quiet and tender atmosphere",
+            ],
+            audio: [
+              "细雨与屋檐滴水声，爪尖触到纸船时细小的水声，便利店灯箱微弱的电流声，无对白",
+              "Light rain and dripping from the awning, a tiny splash as the paw touches the boat, the faint electrical hum of the shop sign; no dialogue",
+            ],
+            style: [
+              "写实毛发和水面反射，克制的 35mm 胶片颗粒，柔和高光，电影调色",
+              "Realistic fur and water reflections, restrained 35mm film grain, soft highlights and cinematic color grading",
+            ],
+          },
+        };
+        function loadExample(key) {
+          const e = key === "human" ? HUMAN_EXAMPLE : EXAMPLES[key];
+          if (!e) return;
+          if (hasPendingEdit && hasContent()) saveHistory(false);
+          clearTimeout(autoTimer);
+          const slots = blankSlots();
+          for (const k of POSITIVE_KEYS) if (e[k]) slots[k] = { zh: e[k][0], en: e[k][1] };
+          if (key === "human") slots.camera = rigPrompt(e.rig);
+          state.draft = {
+            idea: e.idea,
+            slots,
+            rig: defaultRig(),
+            timeline:
+              key === "boat"
+                ? cleanTimeline(BOAT_TIMELINE)
+                : key === "human"
+                  ? cleanTimeline(e.timeline)
+                  : blankTimeline(),
+            performance: key === "human" ? cleanPerformance(e.performance) : cleanPerformance(null),
+            humanPlan: key === "human" ? humanExamplePlan() : null,
+            humanBasis: "",
+          };
+          if (key === "human") {
+            state.draft.rig = cleanRig(e.rig);
+            state.draft.humanBasis = humanBasis(state.draft);
+          }
+          hasPendingEdit = true;
+          hydrate();
+          saveHistory(false);
+          toast("已载入示例，可直接编辑或复制");
+        }
+        function openDialog(id) {
+          if (id === "settingsDialog") settingsToForm();
+          if (id === "historyDialog") renderHistory();
+          if (id === "libraryDialog") renderLibrary();
+          $(id).showModal();
+        }
+        // ---- UI bindings below; verify.cjs evaluates everything above this line ----
+        // Sandboxed hosts (e.g. an embedded preview page) block outbound requests and downloads.
+        // A <meta name="vps-mode" content="sandbox"> marks such a copy so those features explain themselves.
+        const SANDBOX = document.querySelector('meta[name="vps-mode"]')?.content === "sandbox";
+        if (SANDBOX) {
+          $("sandboxNotice").hidden = false;
+          for (const id of ["expandBtn", "directorBtn", "aiTimeline", "uploadGist", "pullGist"]) {
+            $(id).disabled = true;
+            $(id).title = "在线体验版无法连接外部接口";
+          }
+          for (const id of ["downloadTxt", "downloadJson", "backupJson"]) $(id).hidden = true;
+        }
+        document
+          .querySelectorAll("[data-open]")
+          .forEach((b) => b.addEventListener("click", () => openDialog(b.dataset.open)));
+        document
+          .querySelectorAll("[data-close]")
+          .forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+        $("studioNav").addEventListener("click", () => {
+          document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+          $("idea").focus();
+        });
+        document
+          .querySelectorAll("[data-example]")
+          .forEach((b) => b.addEventListener("click", () => loadExample(b.dataset.example)));
+        document.querySelectorAll("[data-language]").forEach((b) =>
+          b.addEventListener("click", () => {
+            state.ui.language = b.dataset.language;
+            renderOutput();
+            persist();
+          }),
+        );
+        $("idea").addEventListener("input", (e) => {
+          state.draft.idea = e.target.value;
+          edited();
+        });
+        for (const [id, p] of Object.entries(PLATFORMS)) $("target").append(new Option(p.label, id));
+        $("target").addEventListener("change", (e) => {
+          state.ui.target = e.target.value;
+          renderOutput();
+          persist();
+        });
+        $("i2vMode").addEventListener("change", (e) => {
+          state.ui.i2v = e.target.checked;
+          renderOutput();
+          persist();
+        });
+        $("copyPositive").addEventListener("click", () => copy(outputFor(state.ui.language).positive));
+        $("copyNegative").addEventListener("click", () => copy(outputFor(state.ui.language).negative));
+        $("saveHistory").addEventListener("click", () => saveHistory());
+        $("expandBtn").addEventListener("click", () => expand());
+        $("cancelAI").addEventListener("click", () => aiController?.abort());
+        $("downloadTxt").addEventListener("click", () => {
+          const o = outputFor(state.ui.language);
+          download(
+            `Video Prompt Studio\nModel: ${state.ui.target}\nLanguage: ${state.ui.language}\n\nPOSITIVE PROMPT\n${o.positive}\n\nNEGATIVE PROMPT\n${o.negative}\n`,
+            "video-prompt.txt",
+            "text/plain;charset=utf-8",
+          );
+        });
+        $("downloadJson").addEventListener("click", () =>
+          download(
+            JSON.stringify(redact({ app: "video-prompt-studio", version: 1, ...snapshot() }), null, 2),
+            "video-prompt.json",
+            "application/json",
+          ),
+        );
+        $("backupJson").addEventListener("click", () => {
+          if (hasPendingEdit && hasContent()) saveHistory(false);
+          download(JSON.stringify(backupPayload(), null, 2), "video_prompts_backup.json", "application/json");
+        });
+        $("clearBtn").addEventListener("click", () => openDialog("confirmDialog"));
+        $("confirmClear").addEventListener("click", () => {
+          if (hasPendingEdit && hasContent()) saveHistory(false);
+          clearTimeout(autoTimer);
+          state.draft = { idea: "", slots: blankSlots(), rig: defaultRig(), timeline: blankTimeline() };
+          hasPendingEdit = false;
+          state.proposal = null;
+          hydrate();
+          $("confirmDialog").close();
+          toast("草稿已清空，负向词恢复默认");
+        });
+
+        for (const [id, key] of [
+          ["performanceMode", "mode"],
+          ["performanceStrategy", "strategy"],
+          ["identityAnchors", "identity"],
+          ["stagingAnchors", "staging"],
+        ])
+          $(id).addEventListener(["identity", "staging"].includes(key) ? "input" : "change", () => {
+            state.draft.performance = { ...cleanPerformance(state.draft.performance), [key]: $(id).value };
+            edited();
+          });
+
+        $("directorBtn").addEventListener("click", () => expand("director"));
+        $("acceptPlan").addEventListener("click", () => acceptDirector("all"));
+        $("acceptCamera").addEventListener("click", () => acceptDirector("camera"));
+        $("acceptTimeline").addEventListener("click", () => acceptDirector("timeline"));
+        $("dismissProposal").addEventListener("click", () => {
+          state.proposal = null;
+          renderDirector();
+          persist();
+          toast("已放弃候选方案，草稿保留");
+        });
+        $("planLockRig").addEventListener("change", (e) => {
+          state.ui.lockRig = e.target.checked;
+          revision++;
+          renderDirector();
+          persist();
+        });
+        for (const id of ["planDuration", "duration"])
+          $(id).addEventListener("input", () => {
+            revision++;
+          });
+        $("planDuration").addEventListener("change", (e) => {
+          const n = Number(e.target.value);
+          if (!Number.isFinite(n) || n < 1 || n > 120 || Math.abs(n * 10 - Math.round(n * 10)) > 0.00001) {
+            e.target.value = state.draft.timeline.duration;
+            toast("总时长需为 1–120 秒，精度为 0.1 秒。", true);
+            return;
+          }
+          state.draft.timeline.duration = n;
+          $("duration").value = n;
+          edited();
+        });
+        $("planContinuous").addEventListener("change", (e) => {
+          state.draft.timeline.continuous = e.target.checked;
+          $("continuous").checked = e.target.checked;
+          edited();
+        });
+        $("applyRig").addEventListener("click", applyRig);
+        $("timelineEnabled").addEventListener("change", (e) => {
+          state.draft.timeline.enabled = e.target.checked;
+          edited();
+        });
+        $("continuous").addEventListener("change", (e) => {
+          state.draft.timeline.continuous = e.target.checked;
+          edited();
+        });
+        $("duration").addEventListener("change", (e) => {
+          const n = Number(e.target.value);
+          if (!Number.isFinite(n) || n < 1 || n > 120 || Math.abs(n * 10 - Math.round(n * 10)) > 0.00001) {
+            e.target.value = state.draft.timeline.duration;
+            toast("总时长需为 1–120 秒，精度为 0.1 秒。", true);
+            return;
+          }
+          state.draft.timeline.duration = n;
+          edited();
+        });
+        $("addSegment").addEventListener("click", addSegment);
+        $("aiTimeline").addEventListener("click", () => expand("timeline"));
+        $("importBackup").addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            if (file.size > 3000000) throw Error("备份文件超过 3MB，请选择较小的JSON备份。");
+            const text = await file.text();
+            let data;
+            try {
+              data = JSON.parse(text);
+            } catch {
+              throw Error("文件不是有效的 JSON，现有数据未改变。");
+            }
+            if (hasPendingEdit && hasContent()) saveHistory(false);
+            const ok = mergeBackup(data);
+            toast(ok ? "备份已校验并合并，当前草稿保留" : "已合并到内存，本机存储失败，请下载备份", !ok);
+          } catch (err) {
+            toast(friendlyError(err), true);
+          } finally {
+            e.target.value = "";
+          }
+        });
+        $("historySearch").addEventListener("input", renderHistory);
+        $("favoriteFilter").addEventListener("click", () => {
+          favoritesOnly = !favoritesOnly;
+          renderHistory();
+        });
+        $("settingsForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          try {
+            if (captureSettings()) {
+              toast("连接设置已保存到本机");
+              $("settingsDialog").close();
+            } else toast("本机存储失败，请检查浏览器设置。", true);
+          } catch (err) {
+            toast(friendlyError(err), true);
+          }
+        });
+        $("provider").addEventListener("change", (e) => {
+          // Model names are editable examples; use whatever the account actually has access to.
+          const p = {
+            deepseek: ["https://api.deepseek.com/v1", "deepseek-chat", "json_object"],
+            dashscope: ["https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus", "json_object"],
+            openai: ["https://api.openai.com/v1", "gpt-5-mini", "json_schema"],
+            openrouter: ["https://openrouter.ai/api/v1", "openai/gpt-5-mini", "json_object"],
+            ollama: ["http://localhost:11434/v1", "qwen3:8b", "json_object"],
+          }[e.target.value];
+          if (p) {
+            $("apiBase").value = p[0];
+            $("apiModel").value = p[1];
+            $("apiKey").value = "";
+            $("responseFormat").value = p[2];
+          }
+        });
+        $("clearCredentials").addEventListener("click", () => {
+          credentials = { ...credentials, apiKey: "", githubPat: "" };
+          $("apiKey").value = "";
+          $("githubPat").value = "";
+          if (writeLocal(KEYS.credentials, credentials)) toast("已清除本机 API Key 和 GitHub PAT");
+        });
+        $("uploadGist").addEventListener("click", () => syncGist());
+        $("pullGist").addEventListener("click", () => syncGist(true));
+        for (const d of DIMENSIONS) $("librarySlot").append(new Option(d.zh, d.key));
+        $("libraryForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const zh = $("libraryZh").value.trim(),
+            en = $("libraryEn").value.trim(),
+            slot = $("librarySlot").value;
+          if (!zh || !en) return;
+          if (state.library.length >= 500) {
+            toast("自定义词库最多 500 条，请先删除部分词条。", true);
+            return;
+          }
+          if (state.library.some((x) => x.slot === slot && x.zh === zh && x.en === en)) {
+            toast("词库中已有此条目");
+            return;
+          }
+          state.library.push({ id: uid(), slot, zh, en, updatedAt: new Date().toISOString() });
+          const ok = persist();
+          renderLibrary();
+          renderPresetOptions();
+          $("libraryZh").value = "";
+          $("libraryEn").value = "";
+          toast(ok ? "词条已保存" : "词条已加入内存，请导出备份", !ok);
+        });
+        document.addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && !document.querySelector("dialog[open]")) {
+            e.preventDefault();
+            saveHistory();
+          }
+        });
+        window.addEventListener("pagehide", () => {
+          if (hasPendingEdit && hasContent()) saveHistory(false);
+          else persist();
+        });
+        initRig();
+        renderTimeline();
+        renderSlots();
+        $("idea").value = state.draft.idea;
+        renderOutput();
+        renderHistory();
+        renderLibrary();
+        updateConnection();
+        window.addEventListener("DOMContentLoaded", icons);
+      })();
+    </script>
+  </body>
+</html>
