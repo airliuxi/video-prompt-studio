@@ -2219,14 +2219,9 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
         function cleanSlots(x, strict = false) {
           if (!isObject(x)) throw Error("维度数据格式无效，已有输入已保留。");
           const out = {};
-          if (
-            strict &&
-            (!Object.keys(x).every((k) => SLOT_KEYS.includes(k)) ||
-              !SLOT_KEYS.every((k) => OPTIONAL_SLOTS.includes(k) || Object.hasOwn(x, k)))
-          )
-            throw Error(
-              "AI 返回的维度不完整，需要 camera / subject / action / environment / style / audio / negative。已有输入已保留。",
-            );
+          const absent = SLOT_KEYS.filter((k) => !OPTIONAL_SLOTS.includes(k) && !Object.hasOwn(x, k));
+          if (strict && absent.length)
+            throw Error(`AI 返回的维度不完整，缺少 ${absent.join(" / ")}。已有输入已保留。`);
           for (const k of SLOT_KEYS) {
             const v = x[k];
             if (v === undefined && OPTIONAL_SLOTS.includes(k)) {
@@ -2240,7 +2235,6 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
               typeof v.en !== "string" ||
               v.zh.length > MAX_TEXT ||
               v.en.length > MAX_TEXT ||
-              (strict && Object.keys(v).length !== 2) ||
               (required && (!v.zh.trim() || !v.en.trim()))
             )
               throw Error(`维度 ${k} 需包含有效的 zh / en 字符串。已有输入已保留。`);
@@ -2276,7 +2270,6 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
         function humanPair(x) {
           if (
             !isObject(x) ||
-            Object.keys(x).length !== 2 ||
             typeof x.zh !== "string" ||
             typeof x.en !== "string" ||
             !x.zh.trim() ||
@@ -2291,24 +2284,22 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           if (x === null || x === undefined) return null;
           if (
             !isObject(x) ||
-            Object.keys(x).length !== 6 ||
-            !["identity", "blocking", "logic", "continuity", "review", "risks"].every((k) =>
-              Object.hasOwn(x, k),
-            ) ||
+            !["identity", "blocking", "logic", "continuity"].every((k) => Object.hasOwn(x, k)) ||
             !Array.isArray(x.logic) ||
             !x.logic.length ||
             x.logic.length > 12 ||
-            !Array.isArray(x.risks) ||
-            x.risks.length > 5
+            !(x.risks === undefined || (Array.isArray(x.risks) && x.risks.length <= 5))
           )
-            throw Error("人物设定或行为因果表格式无效，原稿已保留。");
+            throw Error(
+              "人物设定或行为因果表格式无效（需要 identity / blocking / logic / continuity），原稿已保留。",
+            );
           return {
             identity: humanPair(x.identity),
             blocking: humanPair(x.blocking),
             logic: x.logic.map((v) => {
+              v = isObject(v) ? { ...v, start: num(v.start), end: num(v.end) } : v;
               if (
                 !isObject(v) ||
-                Object.keys(v).length !== 4 ||
                 !Number.isFinite(v.start) ||
                 !Number.isFinite(v.end) ||
                 v.start < 0 ||
@@ -2319,8 +2310,8 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
               return { start: v.start, end: v.end, cause: humanPair(v.cause), result: humanPair(v.result) };
             }),
             continuity: humanPair(x.continuity),
-            review: x.review === null ? null : humanPair(x.review),
-            risks: x.risks.map(humanPair),
+            review: x.review === null || x.review === undefined ? null : humanPair(x.review),
+            risks: (x.risks || []).map(humanPair),
           };
         }
         function validateHuman(x, timeline, required = false, reviewRequired = false) {
@@ -2646,7 +2637,6 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
             }
             if (
               !isObject(v) ||
-              Object.keys(v).length !== 2 ||
               typeof v.zh !== "string" ||
               typeof v.en !== "string" ||
               !v.zh.trim() ||
@@ -2659,15 +2649,77 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           }
           return out;
         }
+        // Map what a model writes ("alexa35", "ARRI ALEXA 35", "35mm", "f/2.8", "固定机位") to our option IDs.
+        function rigId(key, value) {
+          if (value === null || value === undefined) return undefined;
+          const v = String(value).trim().toLowerCase(),
+            items = RIG_OPTIONS[key].items;
+          const exact = items.find((i) => i.slice(0, 3).some((t) => t && t.toLowerCase() === v));
+          if (exact) return exact[0];
+          const bare = v.replace(/^f\//, "").replace(/\s*mm$/, "");
+          if (items.some((i) => i[0] === bare)) return bare;
+          const partial = items.find(
+            ([, zh, en]) =>
+              (en && (en.toLowerCase().includes(v) || v.includes(en.toLowerCase()))) ||
+              (zh && v.includes(zh.split(" · ")[0].toLowerCase())),
+          );
+          return partial?.[0];
+        }
+        // AI rig: unknown keys are dropped, recognizable labels become IDs, missing fields use defaults.
+        // Rejected only when nothing at all is recognizable.
         function strictRig(x) {
+          if (!isObject(x)) throw Error("AI 返回的摄影机参数（rig）不是对象，原稿已保留。");
+          const out = {};
+          for (const key of Object.keys(RIG_OPTIONS)) {
+            const id = rigId(key, x[key]);
+            if (id !== undefined) out[key] = id;
+          }
+          if (!Object.keys(out).length)
+            throw Error(
+              "AI 返回的摄影机参数（rig）无法识别，需要 body / focal / shot / angle / movement / aperture / optics / cadence 的选项 ID，原稿已保留。",
+            );
+          return cleanRig(out);
+        }
+        const num = (v) =>
+          typeof v === "string" && /^\s*-?\d+(\.\d+)?\s*(s|秒)?\s*$/.test(v) ? parseFloat(v) : v;
+        const bool = (v) => (v === "true" ? true : v === "false" ? false : v);
+        const asPair = (v) => (typeof v === "string" && v.trim() ? { zh: v, en: v } : v);
+        // Common deviations seen from chat models: the plan wrapped in {"plan": {...}}, the slots flattened
+        // to the top level, alias names, numbers as strings, or the timeline returned as a bare array.
+        function normalizeDirector(x, duration, continuous) {
+          if (!isObject(x)) return x;
+          const keys = Object.keys(x);
           if (
-            !isObject(x) ||
-            Object.keys(x).length !== Object.keys(RIG_OPTIONS).length ||
-            !Object.keys(RIG_OPTIONS).every((k) => RIG_OPTIONS[k].items.some((v) => v[0] === x[k]))
+            keys.length === 1 &&
+            isObject(x[keys[0]]) &&
+            !["slots", "rig", "timeline", "advice"].includes(keys[0])
           )
-            throw Error("AI 返回的摄影机参数不在支持的选项中，原稿已保留。");
-          if (x.shot === "aerial" && x.angle !== "high") throw Error("AI 的鸟瞰景别与机位冲突，原稿已保留。");
-          return cleanRig(x);
+            x = x[keys[0]];
+          const out = { ...x };
+          if (!isObject(out.slots) && SLOT_KEYS.some((k) => isObject(x[k])))
+            out.slots = Object.fromEntries(SLOT_KEYS.filter((k) => x[k] !== undefined).map((k) => [k, x[k]]));
+          out.rig ??= x.camera_rig ?? x.rig_options ?? x.camera_setup;
+          out.timeline ??= x.storyboard ?? x.segments;
+          out.advice ??= x.reasons ?? x.reasoning ?? x.rationale;
+          if (Array.isArray(out.timeline)) out.timeline = { duration, continuous, segments: out.timeline };
+          if (isObject(out.advice))
+            out.advice = { camera: asPair(out.advice.camera), timeline: asPair(out.advice.timeline) };
+          return out;
+        }
+        function normalizeTimeline(x, duration, continuous) {
+          if (Array.isArray(x)) x = { segments: x };
+          if (!isObject(x)) return x;
+          return {
+            duration: x.duration === undefined ? duration : num(x.duration),
+            continuous: x.continuous === undefined ? continuous : bool(x.continuous),
+            segments: Array.isArray(x.segments)
+              ? x.segments.map((v) =>
+                  isObject(v)
+                    ? { start: num(v.start ?? v.from), end: num(v.end ?? v.to), zh: v.zh, en: v.en }
+                    : v,
+                )
+              : x.segments,
+          };
         }
         function parseDirectorPlan(
           x,
@@ -2677,20 +2729,22 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           humanRequired = false,
           reviewRequired = false,
         ) {
-          if (
-            !isObject(x) ||
-            ![4, 5].includes(Object.keys(x).length) ||
-            !Object.keys(x).every((k) => ["slots", "rig", "timeline", "advice", "human"].includes(k)) ||
-            !["slots", "rig", "timeline", "advice"].every((k) => Object.hasOwn(x, k))
-          )
-            throw Error("导演方案结构不完整，需要各维度、摄影机、时间轴与推荐理由。原稿已保留。");
+          x = normalizeDirector(x, duration, continuous);
+          const missing = isObject(x)
+            ? ["slots", "rig", "timeline", "advice"].filter((k) => x[k] === undefined || x[k] === null)
+            : ["slots", "rig", "timeline", "advice"];
+          if (missing.length)
+            throw Error(
+              `导演方案结构不完整，缺少 ${missing.join("、")}` +
+                (isObject(x) ? `（收到的字段：${Object.keys(x).join("、") || "无"}）` : "") +
+                "。原稿已保留。",
+            );
           const slots = cleanSlots(x.slots, true),
             rig = strictRig(x.rig),
             timeline = parseTimelineAI(x.timeline, duration, continuous);
           if (lockedRig && Object.keys(RIG_OPTIONS).some((k) => rig[k] !== lockedRig[k]))
             throw Error("AI 未遵守沿用当前摄影机的设置，原稿已保留。");
-          if (!isObject(x.advice) || Object.keys(x.advice).length !== 2)
-            throw Error("导演方案缺少推荐理由，原稿已保留。");
+          if (!isObject(x.advice)) throw Error("导演方案缺少推荐理由，原稿已保留。");
           const advice = cleanGuidance(x.advice);
           if (!advice.camera || !advice.timeline)
             throw Error("导演方案缺少相机或时间轴推荐理由，原稿已保留。");
@@ -3068,13 +3122,11 @@ ${JSON.stringify(Object.fromEntries(SLOT_KEYS.map((k) => [k, { zh: "...", en: ".
           edited();
         }
         function parseTimelineAI(x, duration, continuous) {
-          if (
-            !isObject(x) ||
-            Object.keys(x).length !== 3 ||
-            x.duration !== duration ||
-            x.continuous !== continuous
-          )
-            throw Error("AI 时间轴与请求的时长或连续镜头设置不一致，原时间轴保留。");
+          x = normalizeTimeline(x, duration, continuous);
+          if (!isObject(x) || x.duration !== duration || x.continuous !== continuous)
+            throw Error(
+              `AI 时间轴与请求不一致：需要 duration=${duration}、continuous=${continuous}，原时间轴保留。`,
+            );
           const t = cleanTimeline({ enabled: true, ...x }),
             issues = [...timelineIssues(t, "zh"), ...timelineIssues(t, "en")];
           if (t.segments.length < 2 || t.segments.length > 12 || issues.length)
